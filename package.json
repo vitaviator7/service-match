@@ -1,0 +1,31 @@
+{
+    "name": "service-match",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "dev": "turbo run dev",
+        "build": "turbo run build",
+        "start": "turbo run start",
+        "lint": "turbo run lint",
+        "typecheck": "turbo run typecheck",
+        "test": "turbo run test",
+        "test:e2e": "turbo run test:e2e",
+        "db:migrate": "turbo run db:migrate --filter=@service-match/db",
+        "db:generate": "turbo run db:generate --filter=@service-match/db",
+        "db:seed": "turbo run db:seed --filter=@service-match/db",
+        "db:studio": "turbo run db:studio --filter=@service-match/db",
+        "worker:dev": "turbo run dev --filter=@service-match/worker",
+        "worker:start": "turbo run start --filter=@service-match/worker"
+    },
+    "devDependencies": {
+        "turbo": "^2.1.2",
+        "typescript": "^5.5.4"
+    },
+    "engines": {
+        "node": ">=20.0.0"
+    },
+    "packageManager": "npm@10.2.0"
+}
