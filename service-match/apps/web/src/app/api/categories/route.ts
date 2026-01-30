@@ -3,18 +3,18 @@ import { prisma } from '@service-match/db';
 
 export async function GET(req: NextRequest) {
     try {
-        const { searchParams } = new URL(req.url);
-        const parentId = searchParams.get('parent');
-
         const categories = await prisma.category.findMany({
             where: {
                 isActive: true,
-                parentId: parentId || null,
             },
-            orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+            orderBy: { displayOrder: 'asc' },
             include: {
+                subcategories: {
+                    where: { isActive: true },
+                    orderBy: { displayOrder: 'asc' },
+                },
                 _count: {
-                    select: { children: true },
+                    select: { subcategories: true },
                 },
             },
         });

@@ -37,7 +37,7 @@ export async function updateSearchIndex() {
     for (const provider of providers) {
         // Calculate average rating
         const avgRating = provider.reviews.length > 0
-            ? provider.reviews.reduce((sum, r) => sum + r.overallRating, 0) / provider.reviews.length
+            ? provider.reviews.reduce((sum: number, r: any) => sum + r.overallRating, 0) / provider.reviews.length
             : null;
 
         // Calculate response rate (quotes sent / leads received)
@@ -47,8 +47,8 @@ export async function updateSearchIndex() {
         let avgResponseTime = null;
         if (provider.quotes.length > 0) {
             const responseTimes = provider.quotes
-                .filter(q => q.quoteRequest)
-                .map(q => {
+                .filter((q: any) => q.quoteRequest)
+                .map((q: any) => {
                     const quoteTime = new Date(q.createdAt).getTime();
                     const requestTime = new Date(q.quoteRequest!.createdAt).getTime();
                     return (quoteTime - requestTime) / (1000 * 60); // Minutes
@@ -56,7 +56,7 @@ export async function updateSearchIndex() {
 
             if (responseTimes.length > 0) {
                 avgResponseTime = Math.round(
-                    responseTimes.reduce((sum, t) => sum + t, 0) / responseTimes.length
+                    responseTimes.reduce((sum: number, t: number) => sum + t, 0) / responseTimes.length
                 );
             }
         }

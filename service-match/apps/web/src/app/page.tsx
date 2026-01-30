@@ -26,38 +26,7 @@ const trustIndicators = [
 export default function HomePage() {
     return (
         <div className="min-h-screen">
-            {/* Header */}
-            <header className="border-b bg-white/80 backdrop-blur-lg sticky top-0 z-50">
-                <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-2">
-                        <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
-                            <Zap className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-xl font-bold">ServiceMatch</span>
-                    </Link>
 
-                    <nav className="hidden md:flex items-center gap-6">
-                        <Link href="/services" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                            Browse Services
-                        </Link>
-                        <Link href="/how-it-works" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                            How It Works
-                        </Link>
-                        <Link href="/provider/signup" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                            Become a Provider
-                        </Link>
-                    </nav>
-
-                    <div className="flex items-center gap-3">
-                        <Link href="/auth/signin">
-                            <Button variant="ghost" size="sm">Sign In</Button>
-                        </Link>
-                        <Link href="/auth/signup">
-                            <Button size="sm">Get Started</Button>
-                        </Link>
-                    </div>
-                </div>
-            </header>
 
             {/* Hero Section */}
             <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
