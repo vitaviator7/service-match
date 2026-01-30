@@ -21,8 +21,8 @@
         "worker:start": "turbo run start --filter=@service-match/worker"
     },
     "devDependencies": {
-        "turbo": "^2.0.0",
-        "typescript": "^5.3.0"
+        "turbo": "^2.1.2",
+        "typescript": "^5.5.4"
     },
     "engines": {
         "node": ">=20.0.0"
