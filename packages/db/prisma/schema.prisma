@@ -1,0 +1,2005 @@
+// =============================================================================
+// ServiceMatch Database Schema
+// A complete domain model for a UK local services marketplace
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// USER & AUTHENTICATION
+// =============================================================================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  emailVerified     DateTime?
+  passwordHash      String?
+  phone             String?   @unique
+  phoneVerified     Boolean   @default(false)
+  firstName         String?
+  lastName          String?
+  avatarUrl         String?
+  role              UserRole  @default(CUSTOMER)
+  status            UserStatus @default(ACTIVE)
+  
+  // 2FA for admins
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+  
+  // Relations
+  accounts          Account[]
+  sessions          Session[]
+  customerProfile   CustomerProfile?
+  providerProfile   ProviderProfile?
+  notifications     Notification[]
+  notificationPrefs NotificationPreference?
+  adminActions      AdminActionLog[] @relation("AdminUser")
+  targetedActions   AdminActionLog[] @relation("TargetUser")
+  
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model PhoneVerification {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  verified  Boolean  @default(false)
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+  
+  @@map("phone_verifications")
+}
+
+enum UserRole {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+  PENDING_VERIFICATION
+}
+
+// =============================================================================
+// CUSTOMER PROFILE
+// =============================================================================
+
+model CustomerProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Subscription
+  subscriptionTier  CustomerTier @default(FREE)
+  subscriptionId    String?
+  stripeCustomerId  String?
+  
+  // Credits & Referrals
+  creditBalance     Decimal  @default(0) @db.Decimal(10, 2)
+  cashbackBalance   Decimal  @default(0) @db.Decimal(10, 2)
+  referralCode      String   @unique @default(cuid())
+  referredBy        String?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  properties        Property[]
+  quoteRequests     QuoteRequest[]
+  bookings          Booking[] @relation("CustomerBookings")
+  reviews           Review[]
+  disputes          Dispute[] @relation("CustomerDisputes")
+  favorites         ProviderFavorite[]
+  creditTransactions CreditTransaction[]
+  referrals         Referral[] @relation("ReferrerCustomer")
+  referredSignups   Referral[] @relation("ReferredCustomer")
+  
+  @@map("customer_profiles")
+}
+
+model Property {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  name        String   // e.g., "Home", "Office"
+  addressLine1 String
+  addressLine2 String?
+  city        String
+  postcode    String
+  latitude    Float?
+  longitude   Float?
+  propertyType PropertyType @default(HOUSE)
+  notes       String?
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  quoteRequests QuoteRequest[]
+  bookings    Booking[]
+  
+  @@map("properties")
+}
+
+enum CustomerTier {
+  FREE
+  PLUS
+}
+
+enum PropertyType {
+  HOUSE
+  FLAT
+  BUNGALOW
+  COMMERCIAL
+  OTHER
+}
+
+// =============================================================================
+// PROVIDER PROFILE
+// =============================================================================
+
+model ProviderProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Business Info
+  businessName        String
+  slug                String   @unique
+  description         String?  @db.Text
+  shortBio            String?  @db.VarChar(300)
+  
+  // Contact
+  businessPhone       String?
+  businessEmail       String?
+  website             String?
+  
+  // Address
+  addressLine1        String?
+  addressLine2        String?
+  city                String?
+  postcode            String?
+  latitude            Float?
+  longitude           Float?
+  serviceRadius       Int      @default(15) // miles
+  
+  // Subscription & Billing
+  subscriptionTier    ProviderTier @default(STARTER)
+  subscriptionId      String?
+  stripeAccountId     String?  // Stripe Connect
+  stripeAccountStatus StripeAccountStatus @default(PENDING)
+  stripeCustomerId    String?
+  
+  // Lead Wallet
+  leadWalletBalance   Decimal  @default(0) @db.Decimal(10, 2)
+  leadQuotaUsed       Int      @default(0)
+  leadQuotaResetAt    DateTime @default(now())
+  maxLeadsPerWeek     Int?
+  
+  // Verification & Trust
+  emailVerified       Boolean  @default(false)
+  phoneVerified       Boolean  @default(false)
+  identityVerified    Boolean  @default(false)
+  insuranceVerified   Boolean  @default(false)
+  businessRegVerified Boolean  @default(false)
+  companiesHouseNumber String?
+  insuranceExpiresAt  DateTime?
+  
+  // Profile Completeness
+  profileScore        Int      @default(0)
+  onboardingStep      Int      @default(0)
+  onboardingComplete  Boolean  @default(false)
+  
+  // Feature Flags
+  instantBookingEnabled Boolean @default(false)
+  autoQuoteEnabled    Boolean  @default(false)
+  
+  // Performance Metrics (cached)
+  avgRating           Float?
+  totalReviews        Int      @default(0)
+  totalBookings       Int      @default(0)
+  completionRate      Float?
+  responseRate        Float?
+  avgResponseTime     Int?     // minutes
+  repeatCustomerRate  Float?
+  
+  // Display Settings
+  featured            Boolean  @default(false)
+  featuredUntil       DateTime?
+  displayOrder        Int      @default(0)
+  
+  // Status
+  status              ProviderStatus @default(PENDING)
+  statusReason        String?
+  pausedUntil         DateTime?
+  
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  // Relations
+  services            ProviderService[]
+  locations           ProviderLocation[]
+  availability        Availability[]
+  timeOffs            TimeOff[]
+  portfolio           PortfolioItem[]
+  certifications      Certification[]
+  documents           ProviderDocument[]
+  quotes              Quote[]
+  bookings            Booking[] @relation("ProviderBookings")
+  reviews             Review[] @relation("ProviderReviews")
+  reviewResponses     ReviewResponse[]
+  disputes            Dispute[] @relation("ProviderDisputes")
+  messageThreads      MessageThread[]
+  quoteTemplates      QuoteTemplate[]
+  payouts             Payout[]
+  ledgerEntries       LedgerEntry[]
+  featuredPlacements  FeaturedPlacement[]
+  leadTransactions    LeadTransaction[]
+  favorites           ProviderFavorite[]
+  bundles             ServiceBundle[]
+  
+  @@map("provider_profiles")
+}
+
+model ProviderLocation {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  postcode    String
+  city        String
+  latitude    Float
+  longitude   Float
+  radius      Int      @default(10) // miles
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("provider_locations")
+}
+
+enum ProviderTier {
+  STARTER
+  PRO
+  PREMIUM
+}
+
+enum ProviderStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  SUSPENDED
+  BANNED
+}
+
+enum StripeAccountStatus {
+  PENDING
+  ONBOARDING
+  ACTIVE
+  RESTRICTED
+  DISABLED
+}
+
+// =============================================================================
+// CATEGORIES & SERVICES
+// =============================================================================
+
+model Category {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  description   String?  @db.Text
+  icon          String?
+  imageUrl      String?
+  displayOrder  Int      @default(0)
+  isActive      Boolean  @default(true)
+  
+  // SEO
+  metaTitle     String?
+  metaDescription String? @db.Text
+  
+  // Dynamic Pricing Rules
+  weekendMultiplier Float @default(1.0)
+  eveningMultiplier Float @default(1.0)
+  
+  // Lead Settings
+  defaultLeadPrice  Decimal @default(3.00) @db.Decimal(10, 2)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  subcategories Subcategory[]
+  services      ProviderService[]
+  quoteRequests QuoteRequest[]
+  contentBlocks SEOContentBlock[]
+  pricingRules  DynamicPricingRule[]
+  
+  @@map("categories")
+}
+
+model Subcategory {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  
+  name        String
+  slug        String
+  description String?
+  displayOrder Int     @default(0)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  services    ProviderService[]
+  
+  @@unique([categoryId, slug])
+  @@map("subcategories")
+}
+
+model ProviderService {
+  id            String   @id @default(cuid())
+  providerId    String
+  provider      ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  subcategoryId String?
+  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  
+  name          String
+  description   String?  @db.Text
+  pricingModel  PricingModel @default(QUOTE)
+  
+  // Fixed pricing
+  fixedPrice    Decimal? @db.Decimal(10, 2)
+  priceFrom     Decimal? @db.Decimal(10, 2)
+  priceTo       Decimal? @db.Decimal(10, 2)
+  
+  // Hourly pricing
+  hourlyRate    Decimal? @db.Decimal(10, 2)
+  minHours      Float?
+  
+  // Call-out fee
+  callOutFee    Decimal? @db.Decimal(10, 2)
+  
+  duration      Int?     // estimated duration in minutes
+  isActive      Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  quoteRequests QuoteRequest[]
+  quotes        Quote[]
+  bookings      Booking[]
+  bundleItems   ServiceBundleItem[]
+  
+  @@map("provider_services")
+}
+
+model ServiceBundle {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  validMonths Int      @default(12)
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  items       ServiceBundleItem[]
+  
+  @@map("service_bundles")
+}
+
+model ServiceBundleItem {
+  id         String   @id @default(cuid())
+  bundleId   String
+  bundle     ServiceBundle @relation(fields: [bundleId], references: [id], onDelete: Cascade)
+  serviceId  String
+  service    ProviderService @relation(fields: [serviceId], references: [id])
+  
+  quantity   Int      @default(1)
+  
+  @@map("service_bundle_items")
+}
+
+enum PricingModel {
+  FIXED
+  HOURLY
+  QUOTE
+  PACKAGE
+}
+
+// =============================================================================
+// AVAILABILITY
+// =============================================================================
+
+model Availability {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  dayOfWeek   Int      // 0-6 (Sunday-Saturday)
+  startTime   String   // "09:00"
+  endTime     String   // "17:00"
+  isAvailable Boolean  @default(true)
+  
+  @@unique([providerId, dayOfWeek])
+  @@map("availability")
+}
+
+model TimeOff {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  startDate   DateTime
+  endDate     DateTime
+  reason      String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("time_offs")
+}
+
+// =============================================================================
+// PORTFOLIO & CERTIFICATIONS
+// =============================================================================
+
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String?  @db.Text
+  imageUrl    String
+  categoryId  String?
+  beforeUrl   String?
+  afterUrl    String?
+  displayOrder Int     @default(0)
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("portfolio_items")
+}
+
+model Certification {
+  id            String   @id @default(cuid())
+  providerId    String
+  provider      ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  name          String
+  issuingBody   String?
+  issueDate     DateTime?
+  expiryDate    DateTime?
+  documentUrl   String?
+  verified      Boolean  @default(false)
+  verifiedAt    DateTime?
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("certifications")
+}
+
+model ProviderDocument {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  type        DocumentType
+  name        String
+  fileUrl     String
+  status      DocumentStatus @default(PENDING)
+  notes       String?
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  expiresAt   DateTime?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("provider_documents")
+}
+
+enum DocumentType {
+  INSURANCE
+  BUSINESS_REGISTRATION
+  IDENTITY
+  CERTIFICATION
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+// =============================================================================
+// CITIES & LOCATIONS
+// =============================================================================
+
+model City {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  county        String?
+  region        String?
+  country       String   @default("England")
+  latitude      Float
+  longitude     Float
+  population    Int?
+  
+  // SEO
+  metaTitle     String?
+  metaDescription String? @db.Text
+  
+  isActive      Boolean  @default(true)
+  displayOrder  Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  contentBlocks SEOContentBlock[]
+  
+  @@map("cities")
+}
+
+// =============================================================================
+// QUOTE REQUESTS & QUOTES
+// =============================================================================
+
+model QuoteRequest {
+  id            String   @id @default(cuid())
+  customerId    String
+  customer      CustomerProfile @relation(fields: [customerId], references: [id])
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  serviceId     String?
+  service       ProviderService? @relation(fields: [serviceId], references: [id])
+  propertyId    String?
+  property      Property? @relation(fields: [propertyId], references: [id])
+  
+  // Job Brief
+  title         String
+  description   String   @db.Text
+  requirements  Json?    // Structured answers from Job Brief Builder
+  
+  // Location
+  postcode      String
+  city          String?
+  latitude      Float?
+  longitude     Float?
+  
+  // Timing
+  urgency       Urgency  @default(FLEXIBLE)
+  preferredDate DateTime?
+  preferredTime String?
+  
+  // Budget
+  budgetMin     Decimal? @db.Decimal(10, 2)
+  budgetMax     Decimal? @db.Decimal(10, 2)
+  
+  // Media
+  photos        String[] @default([])
+  
+  // State
+  status        QuoteRequestStatus @default(OPEN)
+  expiresAt     DateTime
+  closedAt      DateTime?
+  closedReason  String?
+  
+  // Matching
+  maxQuotes     Int      @default(5)
+  invitedCount  Int      @default(0)
+  viewedCount   Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  quotes        Quote[]
+  invitations   QuoteInvitation[]
+  savedBrief    SavedJobBrief?
+  
+  @@index([postcode])
+  @@index([categoryId])
+  @@index([status])
+  @@map("quote_requests")
+}
+
+model QuoteInvitation {
+  id            String   @id @default(cuid())
+  quoteRequestId String
+  quoteRequest  QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  providerId    String
+  
+  status        InvitationStatus @default(PENDING)
+  sentAt        DateTime @default(now())
+  viewedAt      DateTime?
+  respondedAt   DateTime?
+  
+  @@unique([quoteRequestId, providerId])
+  @@map("quote_invitations")
+}
+
+model Quote {
+  id              String   @id @default(cuid())
+  quoteRequestId  String
+  quoteRequest    QuoteRequest @relation(fields: [quoteRequestId], references: [id], onDelete: Cascade)
+  providerId      String
+  provider        ProviderProfile @relation(fields: [providerId], references: [id])
+  serviceId       String?
+  service         ProviderService? @relation(fields: [serviceId], references: [id])
+  
+  // Pricing
+  amount          Decimal  @db.Decimal(10, 2)
+  breakdown       Json?    // { labor: 100, materials: 50, callOut: 30 }
+  
+  // Details
+  message         String   @db.Text
+  estimatedDuration Int?   // minutes
+  validUntil      DateTime
+  
+  // Availability
+  availableDate   DateTime?
+  availableTime   String?
+  
+  // State
+  status          QuoteStatus @default(SENT)
+  viewedAt        DateTime?
+  acceptedAt      DateTime?
+  declinedAt      DateTime?
+  declinedReason  String?
+  
+  // Lead tracking
+  leadCharged     Boolean  @default(false)
+  leadAmount      Decimal? @db.Decimal(10, 2)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  booking         Booking?
+  messageThread   MessageThread?
+  
+  @@map("quotes")
+}
+
+model QuoteTemplate {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  name        String
+  description String?
+  amount      Decimal  @db.Decimal(10, 2)
+  breakdown   Json?
+  message     String   @db.Text
+  duration    Int?     // minutes
+  isDefault   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("quote_templates")
+}
+
+model SavedJobBrief {
+  id            String   @id @default(cuid())
+  customerId    String
+  quoteRequestId String? @unique
+  quoteRequest  QuoteRequest? @relation(fields: [quoteRequestId], references: [id])
+  
+  name          String
+  categoryId    String
+  title         String
+  description   String   @db.Text
+  requirements  Json?
+  photos        String[] @default([])
+  
+  createdAt     DateTime @default(now())
+  
+  @@map("saved_job_briefs")
+}
+
+enum QuoteRequestStatus {
+  OPEN
+  QUOTES_RECEIVED
+  ACCEPTED
+  CANCELLED
+  EXPIRED
+}
+
+enum QuoteStatus {
+  SENT
+  VIEWED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  WITHDRAWN
+}
+
+enum InvitationStatus {
+  PENDING
+  VIEWED
+  RESPONDED
+  EXPIRED
+  DECLINED
+}
+
+enum Urgency {
+  EMERGENCY
+  URGENT
+  THIS_WEEK
+  THIS_MONTH
+  FLEXIBLE
+}
+
+// =============================================================================
+// BOOKINGS
+// =============================================================================
+
+model Booking {
+  id              String   @id @default(cuid())
+  customerId      String
+  customer        CustomerProfile @relation("CustomerBookings", fields: [customerId], references: [id])
+  providerId      String
+  provider        ProviderProfile @relation("ProviderBookings", fields: [providerId], references: [id])
+  serviceId       String?
+  service         ProviderService? @relation(fields: [serviceId], references: [id])
+  quoteId         String?  @unique
+  quote           Quote?   @relation(fields: [quoteId], references: [id])
+  propertyId      String?
+  property        Property? @relation(fields: [propertyId], references: [id])
+  
+  // Booking Type
+  bookingType     BookingType @default(QUOTE)
+  
+  // Details
+  title           String
+  description     String?  @db.Text
+  
+  // Location
+  addressLine1    String
+  addressLine2    String?
+  city            String
+  postcode        String
+  latitude        Float?
+  longitude       Float?
+  
+  // Scheduling
+  scheduledDate   DateTime
+  scheduledTime   String
+  estimatedDuration Int?   // minutes
+  actualStartTime DateTime?
+  actualEndTime   DateTime?
+  
+  // Pricing
+  subtotal        Decimal  @db.Decimal(10, 2)
+  bookingFee      Decimal  @default(0) @db.Decimal(10, 2)
+  platformFee     Decimal  @db.Decimal(10, 2)
+  platformFeeRate Decimal  @db.Decimal(5, 4)
+  dynamicPricing  Decimal  @default(0) @db.Decimal(10, 2)
+  creditApplied   Decimal  @default(0) @db.Decimal(10, 2)
+  cashbackApplied Decimal  @default(0) @db.Decimal(10, 2)
+  promoDiscount   Decimal  @default(0) @db.Decimal(10, 2)
+  total           Decimal  @db.Decimal(10, 2)
+  providerEarnings Decimal @db.Decimal(10, 2)
+  
+  // State
+  status          BookingStatus @default(REQUESTED)
+  
+  // Completion tracking
+  customerConfirmedAt DateTime?
+  providerConfirmedAt DateTime?
+  autoConfirmAt   DateTime?
+  
+  // Cancellation
+  cancelledAt     DateTime?
+  cancelledBy     String?
+  cancellationReason String?
+  cancellationFee Decimal? @db.Decimal(10, 2)
+  
+  // Payment
+  paymentStatus   PaymentStatus @default(PENDING)
+  paymentIntentId String?
+  paidAt          DateTime?
+  
+  // Payout
+  payoutStatus    PayoutStatus @default(PENDING)
+  payoutId        String?
+  payoutReleasedAt DateTime?
+  
+  // Special Instructions
+  accessNotes     String?
+  customerNotes   String?
+  providerNotes   String?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  payments        Payment[]
+  review          Review?
+  dispute         Dispute?
+  messageThread   MessageThread? @relation("BookingThread")
+  ledgerEntries   LedgerEntry[]
+  
+  @@index([customerId])
+  @@index([providerId])
+  @@index([status])
+  @@index([scheduledDate])
+  @@map("bookings")
+}
+
+enum BookingType {
+  INSTANT
+  QUOTE
+}
+
+enum BookingStatus {
+  REQUESTED
+  ACCEPTED
+  PAID
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DISPUTED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  HELD
+  RELEASED
+  PROCESSING
+  PAID
+  FAILED
+}
+
+// =============================================================================
+// PAYMENTS & LEDGER
+// =============================================================================
+
+model Payment {
+  id                String   @id @default(cuid())
+  bookingId         String
+  booking           Booking  @relation(fields: [bookingId], references: [id])
+  
+  type              PaymentType
+  amount            Decimal  @db.Decimal(10, 2)
+  currency          String   @default("GBP")
+  
+  // Stripe
+  stripePaymentIntentId String?
+  stripeChargeId    String?
+  stripeRefundId    String?
+  
+  status            PaymentStatus @default(PENDING)
+  failedReason      String?
+  
+  // Metadata
+  metadata          Json?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("payments")
+}
+
+model LedgerEntry {
+  id            String   @id @default(cuid())
+  
+  // References
+  bookingId     String?
+  booking       Booking? @relation(fields: [bookingId], references: [id])
+  providerId    String?
+  provider      ProviderProfile? @relation(fields: [providerId], references: [id])
+  payoutId      String?
+  payout        Payout?  @relation(fields: [payoutId], references: [id])
+  
+  // Entry details
+  type          LedgerEntryType
+  amount        Decimal  @db.Decimal(10, 2)
+  currency      String   @default("GBP")
+  description   String
+  
+  // Balance tracking
+  runningBalance Decimal? @db.Decimal(10, 2)
+  
+  // Metadata
+  metadata      Json?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([providerId])
+  @@index([bookingId])
+  @@index([type])
+  @@map("ledger_entries")
+}
+
+model Payout {
+  id              String   @id @default(cuid())
+  providerId      String
+  provider        ProviderProfile @relation(fields: [providerId], references: [id])
+  
+  amount          Decimal  @db.Decimal(10, 2)
+  currency        String   @default("GBP")
+  
+  // Stripe Connect
+  stripeTransferId String?
+  stripePayoutId  String?
+  
+  status          PayoutStatus @default(PENDING)
+  failedReason    String?
+  
+  // Timing
+  scheduledFor    DateTime
+  processedAt     DateTime?
+  
+  // Breakdown
+  bookingsCount   Int      @default(0)
+  grossAmount     Decimal  @db.Decimal(10, 2)
+  feesDeducted    Decimal  @default(0) @db.Decimal(10, 2)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  ledgerEntries   LedgerEntry[]
+  
+  @@index([providerId])
+  @@index([status])
+  @@map("payouts")
+}
+
+enum PaymentType {
+  BOOKING
+  REFUND
+  PARTIAL_REFUND
+  CANCELLATION_FEE
+}
+
+enum LedgerEntryType {
+  BOOKING_PAYMENT
+  PLATFORM_FEE
+  PROVIDER_PENDING
+  PROVIDER_RELEASED
+  PAYOUT_SENT
+  REFUND
+  PARTIAL_REFUND
+  CREDIT_AWARDED
+  CREDIT_APPLIED
+  CASHBACK_EARNED
+  CASHBACK_APPLIED
+  LEAD_FEE
+  FEATURED_FEE
+  SUBSCRIPTION_FEE
+  ADJUSTMENT
+}
+
+// =============================================================================
+// REVIEWS
+// =============================================================================
+
+model Review {
+  id            String   @id @default(cuid())
+  bookingId     String   @unique
+  booking       Booking  @relation(fields: [bookingId], references: [id])
+  customerId    String
+  customer      CustomerProfile @relation(fields: [customerId], references: [id])
+  providerId    String
+  provider      ProviderProfile @relation("ProviderReviews", fields: [providerId], references: [id])
+  
+  // Ratings
+  overallRating Int      // 1-5
+  qualityRating Int?     // 1-5
+  valueRating   Int?     // 1-5
+  punctualityRating Int? // 1-5
+  communicationRating Int? // 1-5
+  
+  // Content
+  title         String?
+  comment       String   @db.Text
+  
+  // Media
+  photos        ReviewMedia[]
+  
+  // Moderation
+  status        ReviewStatus @default(PUBLISHED)
+  flaggedReason String?
+  moderatedAt   DateTime?
+  moderatedBy   String?
+  
+  // Engagement
+  helpfulCount  Int      @default(0)
+  
+  // Incentive
+  photoBonus    Decimal? @db.Decimal(10, 2)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  response      ReviewResponse?
+  votes         ReviewVote[]
+  
+  @@index([providerId])
+  @@index([overallRating])
+  @@map("reviews")
+}
+
+model ReviewMedia {
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  
+  type      MediaType @default(IMAGE)
+  url       String
+  caption   String?
+  
+  createdAt DateTime @default(now())
+  
+  @@map("review_media")
+}
+
+model ReviewResponse {
+  id        String   @id @default(cuid())
+  reviewId  String   @unique
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  providerId String
+  provider  ProviderProfile @relation(fields: [providerId], references: [id])
+  
+  comment   String   @db.Text
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("review_responses")
+}
+
+model ReviewVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  
+  helpful   Boolean
+  
+  createdAt DateTime @default(now())
+  
+  @@unique([reviewId, userId])
+  @@map("review_votes")
+}
+
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  FLAGGED
+  HIDDEN
+  REMOVED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+// =============================================================================
+// DISPUTES
+// =============================================================================
+
+model Dispute {
+  id            String   @id @default(cuid())
+  bookingId     String   @unique
+  booking       Booking  @relation(fields: [bookingId], references: [id])
+  customerId    String
+  customer      CustomerProfile @relation("CustomerDisputes", fields: [customerId], references: [id])
+  providerId    String
+  provider      ProviderProfile @relation("ProviderDisputes", fields: [providerId], references: [id])
+  
+  // Who opened
+  openedBy      DisputeParty
+  
+  // Details
+  reason        DisputeReason
+  description   String   @db.Text
+  
+  // State
+  status        DisputeStatus @default(OPEN)
+  priority      DisputePriority @default(NORMAL)
+  
+  // Resolution
+  outcome       DisputeOutcome?
+  resolution    String?  @db.Text
+  refundAmount  Decimal? @db.Decimal(10, 2)
+  
+  // Assignment
+  assignedTo    String?
+  
+  // Timing
+  resolvedAt    DateTime?
+  closedAt      DateTime?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  evidence      DisputeEvidence[]
+  comments      DisputeComment[]
+  
+  @@index([status])
+  @@map("disputes")
+}
+
+model DisputeEvidence {
+  id          String   @id @default(cuid())
+  disputeId   String
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  
+  uploadedBy  DisputeParty
+  type        EvidenceType
+  fileUrl     String
+  description String?
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("dispute_evidence")
+}
+
+model DisputeComment {
+  id          String   @id @default(cuid())
+  disputeId   String
+  dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  
+  authorId    String
+  authorType  DisputeParty
+  content     String   @db.Text
+  isInternal  Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("dispute_comments")
+}
+
+enum DisputeParty {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum DisputeReason {
+  SERVICE_NOT_COMPLETED
+  POOR_QUALITY
+  OVERCHARGED
+  PROVIDER_NO_SHOW
+  CUSTOMER_NO_SHOW
+  PROPERTY_DAMAGE
+  LATE_ARRIVAL
+  MISCONDUCT
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  INVESTIGATING
+  AWAITING_RESPONSE
+  RESOLVED
+  CLOSED
+}
+
+enum DisputePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum DisputeOutcome {
+  FULL_REFUND
+  PARTIAL_REFUND
+  RELEASE_TO_PROVIDER
+  SPLIT
+  CLOSE_NO_ACTION
+}
+
+enum EvidenceType {
+  PHOTO
+  VIDEO
+  DOCUMENT
+  SCREENSHOT
+}
+
+// =============================================================================
+// MESSAGING
+// =============================================================================
+
+model MessageThread {
+  id            String   @id @default(cuid())
+  providerId    String
+  provider      ProviderProfile @relation(fields: [providerId], references: [id])
+  
+  // Thread context
+  type          ThreadType
+  quoteId       String?  @unique
+  quote         Quote?   @relation(fields: [quoteId], references: [id])
+  bookingId     String?  @unique
+  booking       Booking? @relation("BookingThread", fields: [bookingId], references: [id])
+  
+  // Participants
+  customerId    String
+  
+  // Status
+  status        ThreadStatus @default(ACTIVE)
+  
+  // Tracking
+  lastMessageAt DateTime @default(now())
+  customerUnread Int     @default(0)
+  providerUnread Int     @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  messages      Message[]
+  
+  @@index([providerId])
+  @@index([customerId])
+  @@map("message_threads")
+}
+
+model Message {
+  id          String   @id @default(cuid())
+  threadId    String
+  thread      MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  
+  senderId    String
+  senderType  SenderType
+  
+  content     String?  @db.Text
+  
+  // Attachments
+  attachments MessageAttachment[]
+  
+  // Status
+  readAt      DateTime?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([threadId])
+  @@map("messages")
+}
+
+model MessageAttachment {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  
+  type      MediaType
+  url       String
+  name      String
+  size      Int
+  
+  @@map("message_attachments")
+}
+
+enum ThreadType {
+  QUOTE
+  BOOKING
+  GENERAL
+}
+
+enum ThreadStatus {
+  ACTIVE
+  ARCHIVED
+  BLOCKED
+}
+
+enum SenderType {
+  CUSTOMER
+  PROVIDER
+  SYSTEM
+}
+
+// =============================================================================
+// NOTIFICATIONS
+// =============================================================================
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        NotificationType
+  title       String
+  message     String
+  data        Json?
+  
+  // Delivery
+  channels    NotificationChannel[] @default([IN_APP])
+  
+  // Status
+  readAt      DateTime?
+  emailSentAt DateTime?
+  smsSentAt   DateTime?
+  pushSentAt  DateTime?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+  @@index([readAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Email
+  emailMarketing      Boolean @default(true)
+  emailTransactional  Boolean @default(true)
+  emailQuotes         Boolean @default(true)
+  emailBookings       Boolean @default(true)
+  emailReviews        Boolean @default(true)
+  
+  // SMS
+  smsTransactional    Boolean @default(true)
+  smsReminders        Boolean @default(true)
+  
+  // Push
+  pushEnabled         Boolean @default(true)
+  pushQuotes          Boolean @default(true)
+  pushBookings        Boolean @default(true)
+  pushMessages        Boolean @default(true)
+  
+  // Quiet Hours
+  quietHoursEnabled   Boolean @default(false)
+  quietHoursStart     String? // "22:00"
+  quietHoursEnd       String? // "08:00"
+  
+  updatedAt   DateTime @updatedAt
+  
+  @@map("notification_preferences")
+}
+
+enum NotificationType {
+  // Quotes
+  NEW_QUOTE_REQUEST
+  QUOTE_RECEIVED
+  QUOTE_ACCEPTED
+  QUOTE_EXPIRED
+  
+  // Bookings
+  BOOKING_CONFIRMED
+  BOOKING_REMINDER
+  BOOKING_STARTED
+  BOOKING_COMPLETED
+  BOOKING_CANCELLED
+  
+  // Reviews
+  REVIEW_REQUESTED
+  REVIEW_RECEIVED
+  REVIEW_RESPONSE
+  
+  // Disputes
+  DISPUTE_OPENED
+  DISPUTE_UPDATE
+  DISPUTE_RESOLVED
+  
+  // Payments
+  PAYMENT_RECEIVED
+  PAYOUT_SENT
+  PAYOUT_FAILED
+  
+  // Messages
+  NEW_MESSAGE
+  
+  // Provider
+  LEAD_RECEIVED
+  LEAD_QUOTA_WARNING
+  VERIFICATION_APPROVED
+  VERIFICATION_REJECTED
+  
+  // Subscriptions
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_RENEWED
+  SUBSCRIPTION_CANCELLED
+  SUBSCRIPTION_PAYMENT_FAILED
+  
+  // Marketing
+  PROMOTION
+  MAINTENANCE_REMINDER
+  WIN_BACK
+  
+  // System
+  SYSTEM_ANNOUNCEMENT
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  PUSH
+}
+
+// =============================================================================
+// SUBSCRIPTIONS & CREDITS
+// =============================================================================
+
+model Subscription {
+  id                String   @id @default(cuid())
+  
+  // Owner (either customer or provider)
+  customerProfileId String?
+  providerProfileId String?
+  
+  // Stripe
+  stripeSubscriptionId String @unique
+  stripePriceId     String
+  stripeCustomerId  String
+  
+  // Details
+  type              SubscriptionType
+  tier              String   // PLUS, PRO, PREMIUM
+  
+  // Status
+  status            SubscriptionStatus @default(ACTIVE)
+  
+  // Billing
+  currentPeriodStart DateTime
+  currentPeriodEnd  DateTime
+  cancelAtPeriodEnd Boolean  @default(false)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@map("subscriptions")
+}
+
+model CreditTransaction {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    CustomerProfile @relation(fields: [customerId], references: [id])
+  
+  type        CreditType
+  amount      Decimal  @db.Decimal(10, 2)
+  description String
+  
+  // Reference
+  bookingId   String?
+  referralId  String?
+  promoCodeId String?
+  
+  // Balance after
+  balanceAfter Decimal @db.Decimal(10, 2)
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("credit_transactions")
+}
+
+model LeadTransaction {
+  id          String   @id @default(cuid())
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id])
+  
+  type        LeadTransactionType
+  amount      Decimal  @db.Decimal(10, 2)
+  description String
+  
+  // Reference
+  quoteRequestId String?
+  
+  // Balance after
+  balanceAfter Decimal @db.Decimal(10, 2)
+  
+  createdAt   DateTime @default(now())
+  
+  @@map("lead_transactions")
+}
+
+enum SubscriptionType {
+  CUSTOMER
+  PROVIDER
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  UNPAID
+  TRIALING
+}
+
+enum CreditType {
+  EARNED
+  REFERRAL
+  PROMO
+  REVIEW_BONUS
+  CASHBACK
+  SPENT
+  EXPIRED
+  ADJUSTMENT
+}
+
+enum LeadTransactionType {
+  CREDIT_ADDED
+  LEAD_DEBIT
+  REFUND
+  ADJUSTMENT
+}
+
+// =============================================================================
+// REFERRALS & PROMOS
+// =============================================================================
+
+model Referral {
+  id              String   @id @default(cuid())
+  referrerId      String
+  referrer        CustomerProfile @relation("ReferrerCustomer", fields: [referrerId], references: [id])
+  referredId      String?
+  referred        CustomerProfile? @relation("ReferredCustomer", fields: [referredId], references: [id])
+  
+  code            String   @unique
+  
+  status          ReferralStatus @default(PENDING)
+  
+  // Rewards
+  referrerReward  Decimal? @db.Decimal(10, 2)
+  referredReward  Decimal? @db.Decimal(10, 2)
+  
+  // Tracking
+  signedUpAt      DateTime?
+  completedAt     DateTime? // After first booking
+  rewardedAt      DateTime?
+  
+  createdAt       DateTime @default(now())
+  
+  @@map("referrals")
+}
+
+model PromoCode {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  description     String?
+  
+  type            PromoType
+  value           Decimal  @db.Decimal(10, 2)
+  
+  // Conditions
+  minBookingValue Decimal? @db.Decimal(10, 2)
+  maxDiscountValue Decimal? @db.Decimal(10, 2)
+  categoryId      String?
+  
+  // Usage limits
+  usageLimit      Int?
+  usageCount      Int      @default(0)
+  perUserLimit    Int      @default(1)
+  firstBookingOnly Boolean @default(false)
+  newUsersOnly    Boolean  @default(false)
+  
+  // Validity
+  startsAt        DateTime @default(now())
+  expiresAt       DateTime?
+  
+  isActive        Boolean  @default(true)
+  
+  createdAt       DateTime @default(now())
+  
+  @@map("promo_codes")
+}
+
+enum ReferralStatus {
+  PENDING
+  SIGNED_UP
+  COMPLETED
+  REWARDED
+  EXPIRED
+}
+
+enum PromoType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_BOOKING
+}
+
+// =============================================================================
+// FEATURED PLACEMENTS
+// =============================================================================
+
+model FeaturedPlacement {
+  id            String   @id @default(cuid())
+  providerId    String
+  provider      ProviderProfile @relation(fields: [providerId], references: [id])
+  
+  type          PlacementType
+  position      PlacementPosition
+  
+  // Targeting
+  categoryId    String?
+  cityId        String?
+  
+  // Scheduling
+  startsAt      DateTime
+  endsAt        DateTime
+  
+  // Billing
+  stripeSubscriptionId String?
+  pricePerDay   Decimal  @db.Decimal(10, 2)
+  
+  // Performance
+  impressions   Int      @default(0)
+  clicks        Int      @default(0)
+  
+  isActive      Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([type, position])
+  @@index([startsAt, endsAt])
+  @@map("featured_placements")
+}
+
+enum PlacementType {
+  HOMEPAGE
+  CATEGORY
+  SEARCH
+  CITY
+}
+
+enum PlacementPosition {
+  TOP
+  SIDEBAR
+  INLINE
+}
+
+// =============================================================================
+// DYNAMIC PRICING
+// =============================================================================
+
+model DynamicPricingRule {
+  id          String   @id @default(cuid())
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  name        String
+  description String?
+  
+  // Conditions
+  type        PricingRuleType
+  conditions  Json     // { dayOfWeek: [0, 6], timeStart: "18:00", timeEnd: "22:00" }
+  
+  // Multiplier
+  multiplier  Float
+  
+  // Priority
+  priority    Int      @default(0)
+  
+  isActive    Boolean  @default(true)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("dynamic_pricing_rules")
+}
+
+enum PricingRuleType {
+  TIME_BASED
+  DEMAND_BASED
+  CATEGORY_BASED
+  LOCATION_BASED
+}
+
+// =============================================================================
+// SEO
+// =============================================================================
+
+model SEOContentBlock {
+  id            String   @id @default(cuid())
+  
+  // Target page
+  pageType      SEOPageType
+  categoryId    String?
+  category      Category? @relation(fields: [categoryId], references: [id])
+  cityId        String?
+  city          City?    @relation(fields: [cityId], references: [id])
+  
+  // Content
+  blockType     ContentBlockType
+  title         String?
+  content       String   @db.Text
+  displayOrder  Int      @default(0)
+  
+  isActive      Boolean  @default(true)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("seo_content_blocks")
+}
+
+model PageIndexControl {
+  id            String   @id @default(cuid())
+  
+  // Target page
+  pageType      SEOPageType
+  categorySlug  String?
+  citySlug      String?
+  providerSlug  String?
+  
+  // Full path
+  path          String   @unique
+  
+  // Index control
+  shouldIndex   Boolean  @default(true)
+  noindexReason String?
+  
+  // Metrics
+  providerCount Int      @default(0)
+  reviewCount   Int      @default(0)
+  contentBlockCount Int  @default(0)
+  
+  // Last check
+  lastCheckedAt DateTime @default(now())
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@map("page_index_control")
+}
+
+enum SEOPageType {
+  CATEGORY
+  CATEGORY_LOCATION
+  CITY
+  PROVIDER
+  BLOG
+}
+
+enum ContentBlockType {
+  INTRO
+  FAQ
+  TIPS
+  PRICING_GUIDE
+  TESTIMONIALS
+}
+
+// =============================================================================
+// FEATURE FLAGS & CONFIG
+// =============================================================================
+
+model FeatureFlag {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  name        String
+  description String?
+  
+  enabled     Boolean  @default(false)
+  
+  // Rollout
+  rolloutPercentage Int @default(100)
+  
+  // Targeting
+  targetRoles UserRole[] @default([])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("feature_flags")
+}
+
+model PlatformConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  type        ConfigType @default(STRING)
+  description String?
+  
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?
+  
+  @@map("platform_config")
+}
+
+enum ConfigType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+// =============================================================================
+// ADMIN & AUDIT
+// =============================================================================
+
+model AdminActionLog {
+  id            String   @id @default(cuid())
+  adminId       String
+  admin         User     @relation("AdminUser", fields: [adminId], references: [id])
+  
+  action        AdminAction
+  targetType    String?
+  targetId      String?
+  targetUserId  String?
+  targetUser    User?    @relation("TargetUser", fields: [targetUserId], references: [id])
+  
+  details       Json?
+  reason        String?
+  
+  ipAddress     String?
+  userAgent     String?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@map("admin_action_logs")
+}
+
+model WebhookEvent {
+  id            String   @id @default(cuid())
+  
+  source        String   // stripe, pusher, etc.
+  eventType     String
+  eventId       String   @unique
+  
+  payload       Json
+  
+  status        WebhookStatus @default(PENDING)
+  attempts      Int      @default(0)
+  lastAttemptAt DateTime?
+  processedAt   DateTime?
+  error         String?
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([source, eventType])
+  @@index([status])
+  @@map("webhook_events")
+}
+
+enum AdminAction {
+  // Users
+  USER_CREATED
+  USER_UPDATED
+  USER_SUSPENDED
+  USER_BANNED
+  USER_UNBANNED
+  USER_DELETED
+  
+  // Providers
+  PROVIDER_VERIFIED
+  PROVIDER_REJECTED
+  PROVIDER_FEATURED
+  PROVIDER_UNFEATURED
+  
+  // Bookings
+  BOOKING_OVERRIDE
+  BOOKING_CANCELLED
+  
+  // Payments
+  REFUND_ISSUED
+  PAYOUT_OVERRIDE
+  PAYOUT_HELD
+  PAYOUT_RELEASED
+  
+  // Disputes
+  DISPUTE_ASSIGNED
+  DISPUTE_RESOLVED
+  DISPUTE_CLOSED
+  
+  // Reviews
+  REVIEW_HIDDEN
+  REVIEW_REMOVED
+  REVIEW_RESTORED
+  
+  // Content
+  CONTENT_UPDATED
+  PROMO_CREATED
+  PROMO_UPDATED
+  
+  // Config
+  CONFIG_UPDATED
+  FEATURE_FLAG_UPDATED
+}
+
+enum WebhookStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+// =============================================================================
+// PROVIDER FAVORITES
+// =============================================================================
+
+model ProviderFavorite {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  providerId  String
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  
+  @@unique([customerId, providerId])
+  @@map("provider_favorites")
+}

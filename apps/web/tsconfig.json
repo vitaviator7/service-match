@@ -1,0 +1,45 @@
+{
+    "extends": "../../tsconfig.json",
+    "compilerOptions": {
+        "plugins": [
+            {
+                "name": "next"
+            }
+        ],
+        "paths": {
+            "@/*": [
+                "./src/*"
+            ],
+            "@/components/*": [
+                "./src/components/*"
+            ],
+            "@/lib/*": [
+                "./src/lib/*"
+            ],
+            "@/hooks/*": [
+                "./src/hooks/*"
+            ],
+            "@/styles/*": [
+                "./src/styles/*"
+            ]
+        },
+        "baseUrl": ".",
+        "jsx": "preserve",
+        "allowJs": true,
+        "moduleResolution": "bundler",
+        "module": "ESNext",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "incremental": true,
+        "noEmit": true
+    },
+    "include": [
+        "next-env.d.ts",
+        "**/*.ts",
+        "**/*.tsx",
+        ".next/types/**/*.ts"
+    ],
+    "exclude": [
+        "node_modules"
+    ]
+}
