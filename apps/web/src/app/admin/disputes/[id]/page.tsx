@@ -130,7 +130,7 @@ export default async function AdminDisputeDetailPage({ params }: AdminDisputeDet
                                         <div className={`max-w-[80%] p-4 rounded-xl ${msg.isAdminNote ? 'bg-amber-50 border border-amber-100' : 'bg-slate-100'}`}>
                                             <div className="flex items-center justify-between mb-1 gap-4">
                                                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                                    {msg.author.firstName} {msg.author.lastName} {msg.isAdminNote && '(ADMIN)'}
+                                                    {msg.author ? `${msg.author.firstName} ${msg.author.lastName}` : 'System/Unknown'} {msg.isAdminNote && '(ADMIN)'}
                                                 </span>
                                                 <span className="text-[10px] text-muted-foreground">
                                                     {new Date(msg.createdAt).toLocaleString()}

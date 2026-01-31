@@ -1305,8 +1305,8 @@ model DisputeComment {
   disputeId   String
   dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
   
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
+  authorId    String?
+  author      User?    @relation(fields: [authorId], references: [id])
   authorType  DisputeParty
   content     String   @db.Text
   isInternal  Boolean  @default(false)

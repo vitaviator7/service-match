@@ -141,10 +141,10 @@ export async function POST(req: NextRequest) {
 
         if (customerProfile && thread.customerId === customerProfile.id) {
             senderType = 'CUSTOMER';
-            senderId = customerProfile.id;
+            senderId = session.user.id;
         } else if (providerProfile && thread.providerId === providerProfile.id) {
             senderType = 'PROVIDER';
-            senderId = providerProfile.id;
+            senderId = session.user.id;
         } else {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
         }
