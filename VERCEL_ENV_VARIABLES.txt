@@ -1,0 +1,66 @@
+# =============================================================================
+# VERCEL ENVIRONMENT VARIABLES FOR PRODUCTION
+# =============================================================================
+# Add these in Vercel Dashboard → Project Settings → Environment Variables
+# Select "Production" environment for each variable
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# REQUIRED - App Configuration
+# -----------------------------------------------------------------------------
+NEXT_PUBLIC_APP_URL=https://YOUR-APP.vercel.app
+NEXT_PUBLIC_APP_NAME=Serious Control
+NODE_ENV=production
+
+# -----------------------------------------------------------------------------
+# REQUIRED - Database
+# -----------------------------------------------------------------------------
+# Option 1: Create Vercel Postgres in Storage tab (auto-adds this)
+# Option 2: Use external provider (Supabase, Neon, etc.)
+DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public
+
+# -----------------------------------------------------------------------------
+# REQUIRED - Authentication
+# -----------------------------------------------------------------------------
+NEXTAUTH_URL=https://YOUR-APP.vercel.app
+NEXTAUTH_SECRET=<generate with: openssl rand -base64 32>
+
+# Google OAuth
+# Get from: https://console.cloud.google.com/apis/credentials
+GOOGLE_CLIENT_ID=<your-google-client-id>
+GOOGLE_CLIENT_SECRET=<your-google-client-secret>
+
+# -----------------------------------------------------------------------------
+# REQUIRED FOR PAYMENTS - Stripe
+# -----------------------------------------------------------------------------
+# Get from: https://dashboard.stripe.com/apikeys (use LIVE keys for production)
+STRIPE_SECRET_KEY=<your-stripe-secret-key>
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=<your-stripe-publishable-key>
+STRIPE_WEBHOOK_SECRET=<your-stripe-webhook-secret>
+STRIPE_CONNECT_CLIENT_ID=<your-stripe-connect-client-id>
+
+# -----------------------------------------------------------------------------
+# OPTIONAL - Add as needed
+# -----------------------------------------------------------------------------
+
+# Feature Flags
+FEATURE_INSTANT_BOOKING=true
+FEATURE_DYNAMIC_PRICING=false
+FEATURE_AI_ASSIST=false
+FEATURE_STRIPE_IDENTITY=false
+
+# Platform Configuration
+PLATFORM_FEE_DEFAULT=0.18
+PLATFORM_FEE_STARTER=0.22
+PLATFORM_FEE_PRO=0.18
+PLATFORM_FEE_PREMIUM=0.15
+LEAD_FEE_STARTER=3.00
+CUSTOMER_PLUS_CASHBACK=0.05
+
+# Pusher Cluster (if using real-time messaging)
+PUSHER_CLUSTER=eu
+NEXT_PUBLIC_PUSHER_CLUSTER=eu
+
+# AWS Region (if using S3 uploads)
+AWS_REGION=eu-west-2
+AWS_S3_BUCKET=seriouscontrol-uploads
