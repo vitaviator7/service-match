@@ -12,28 +12,60 @@ interface ServicePageProps {
 }
 
 export async function generateMetadata({ params }: ServicePageProps): Promise<Metadata> {
-    const category = await prisma.category.findUnique({
-        where: { slug: params.slug },
-    });
+    try {
+        const category = await prisma.category.findUnique({
+            where: { slug: params.slug },
+        });
 
-    if (!category) return { title: 'Not Found' };
+        if (!category) return { title: 'Not Found' };
 
-    return {
-        title: `${category.name} Services | Serious Control`,
-        description: category.description || `Find trusted ${category.name} professionals near you.`,
-    };
+        return {
+            title: `${category.name} Services | Serious Control`,
+            description: category.description || `Find trusted ${category.name} professionals near you.`,
+        };
+    } catch (error) {
+        console.error('Database error in generateMetadata:', error);
+        return { title: 'Services | Serious Control' };
+    }
 }
 
 export default async function ServicePage({ params }: ServicePageProps) {
-    const category = await prisma.category.findUnique({
-        where: { slug: params.slug },
-        include: {
-            subcategories: {
-                where: { isActive: true },
-                orderBy: { displayOrder: 'asc' },
+    let category;
+    let databaseError = false;
+
+    try {
+        category = await prisma.category.findUnique({
+            where: { slug: params.slug },
+            include: {
+                subcategories: {
+                    where: { isActive: true },
+                    orderBy: { displayOrder: 'asc' },
+                },
             },
-        },
-    });
+        });
+    } catch (error) {
+        console.error('Database connection error:', error);
+        databaseError = true;
+    }
+
+    if (databaseError) {
+        return (
+            <div className="container mx-auto px-4 py-12 min-h-screen">
+                <div className="max-w-2xl mx-auto text-center">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 mb-6">
+                        <svg className="w-8 h-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h1 className="text-2xl font-bold mb-4">Service Temporarily Unavailable</h1>
+                    <p className="text-muted-foreground mb-8">We're experiencing technical difficulties. Please try again later.</p>
+                    <Link href="/">
+                        <Button>Return Home</Button>
+                    </Link>
+                </div>
+            </div>
+        );
+    }
 
     if (!category) {
         notFound();
