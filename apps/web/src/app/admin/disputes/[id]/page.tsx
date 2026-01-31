@@ -46,7 +46,7 @@ export default async function AdminDisputeDetailPage({ params }: AdminDisputeDet
             },
             messages: {
                 orderBy: { createdAt: 'asc' },
-                include: { sender: true }
+                include: { author: true }
             }
         },
     });
@@ -126,11 +126,11 @@ export default async function AdminDisputeDetailPage({ params }: AdminDisputeDet
                         <CardContent>
                             <div className="space-y-6">
                                 {dispute.messages.map((msg, i) => (
-                                    <div key={msg.id} className={`flex gap-4 ${msg.senderId === session.user.id ? 'justify-end' : ''}`}>
+                                    <div key={msg.id} className={`flex gap-4 ${msg.authorId === session.user.id ? 'justify-end' : ''}`}>
                                         <div className={`max-w-[80%] p-4 rounded-xl ${msg.isAdminNote ? 'bg-amber-50 border border-amber-100' : 'bg-slate-100'}`}>
                                             <div className="flex items-center justify-between mb-1 gap-4">
                                                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                                                    {msg.sender.firstName} {msg.sender.lastName} {msg.isAdminNote && '(ADMIN)'}
+                                                    {msg.author.firstName} {msg.author.lastName} {msg.isAdminNote && '(ADMIN)'}
                                                 </span>
                                                 <span className="text-[10px] text-muted-foreground">
                                                     {new Date(msg.createdAt).toLocaleString()}
@@ -208,7 +208,7 @@ export default async function AdminDisputeDetailPage({ params }: AdminDisputeDet
                                 <p className="text-xs text-muted-foreground mb-3">ID: {dispute.booking.id}</p>
                                 <div className="flex items-center justify-between text-sm">
                                     <span>Amount</span>
-                                    <span className="font-bold">£{dispute.booking.totalPrice.toFixed(2)}</span>
+                                    <span className="font-bold">£{dispute.booking.total.toFixed(2)}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-sm mt-1">
                                     <span>Status</span>

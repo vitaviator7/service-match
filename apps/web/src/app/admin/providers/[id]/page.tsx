@@ -51,7 +51,7 @@ export default async function AdminProviderDetailPage({ params }: AdminProviderD
                     bookings: true,
                     quotes: true,
                     reviews: true,
-                    leads: true,
+                    leadTransactions: true,
                 }
             }
         },
@@ -76,22 +76,22 @@ export default async function AdminProviderDetailPage({ params }: AdminProviderD
                     <div>
                         <h1 className="text-3xl font-bold">{provider.businessName}</h1>
                         <div className="flex items-center gap-2 mt-1">
-                            <Badge variant={provider.isVerified ? 'success' : 'outline'}>
-                                {provider.isVerified ? 'Verified' : 'Pending Verification'}
+                            <Badge variant={provider.identityVerified ? 'success' : 'outline'}>
+                                {provider.identityVerified ? 'Verified' : 'Pending Verification'}
                             </Badge>
                             <Badge variant="secondary" className="capitalize">
                                 {provider.subscriptionTier} Plan
                             </Badge>
                             <div className="flex items-center text-amber-500 ml-2">
                                 <Star className="h-4 w-4 fill-current mr-1" />
-                                <span className="text-sm font-bold">{provider.rating.toFixed(1)}</span>
-                                <span className="text-xs text-muted-foreground ml-1">({provider.reviewCount})</span>
+                                <span className="text-sm font-bold">{(provider.avgRating || 0).toFixed(1)}</span>
+                                <span className="text-xs text-muted-foreground ml-1">({provider.totalReviews})</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    {!provider.isVerified && (
+                    {!provider.identityVerified && (
                         <Button className="bg-green-600 hover:bg-green-700">Verify Business</Button>
                     )}
                     <Button variant="outline" asChild>
@@ -117,12 +117,12 @@ export default async function AdminProviderDetailPage({ params }: AdminProviderD
                         </div>
                         <div className="bg-white p-6 rounded-2xl shadow-sm border text-center">
                             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Leads</p>
-                            <p className="text-3xl font-bold">{provider._count.leads}</p>
+                            <p className="text-3xl font-bold">{provider._count.leadTransactions}</p>
                         </div>
                         <div className="bg-white p-6 rounded-2xl shadow-sm border text-center">
                             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Conversion</p>
                             <p className="text-3xl font-bold">
-                                {provider._count.leads > 0 ? ((provider._count.quotes / provider._count.leads) * 100).toFixed(0) : 0}%
+                                {provider._count.leadTransactions > 0 ? ((provider._count.quotes / provider._count.leadTransactions) * 100).toFixed(0) : 0}%
                             </p>
                         </div>
                     </div>
@@ -164,7 +164,7 @@ export default async function AdminProviderDetailPage({ params }: AdminProviderD
                                     </div>
                                     <div className="flex items-center gap-3 text-sm text-green-600 font-medium">
                                         <ShieldCheck className="h-4 w-4" />
-                                        <span>Trust Score: {provider.trustScore}/100</span>
+                                        <span>Trust Score: {provider.profileScore}/100</span>
                                     </div>
                                 </div>
                             </div>

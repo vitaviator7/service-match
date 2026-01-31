@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -58,7 +58,7 @@ interface SearchResult {
     totalPages: number;
 }
 
-export default function SearchPage() {
+function SearchContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
@@ -118,8 +118,8 @@ export default function SearchPage() {
     }, [buildSearchUrl]);
 
     // Debounced search
-    const debouncedSearch = useCallback(
-        debounce(() => {
+    const debouncedSearch = useMemo(
+        () => debounce(() => {
             setCurrentPage(1);
             searchProviders();
         }, 300),
@@ -280,6 +280,18 @@ export default function SearchPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        }>
+            <SearchContent />
+        </Suspense>
     );
 }
 

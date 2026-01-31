@@ -32,8 +32,6 @@ export default async function AdminUserDetailPage({ params }: AdminUserDetailPag
             providerProfile: true,
             _count: {
                 select: {
-                    sentMessages: true,
-                    receivedMessages: true,
                     notifications: true,
                 }
             }
@@ -153,8 +151,8 @@ export default async function AdminUserDetailPage({ params }: AdminUserDetailPag
                                         <p className="font-semibold text-lg">{targetUser.providerProfile.businessName}</p>
                                         <p className="text-sm text-muted-foreground mt-1">{targetUser.providerProfile.shortBio}</p>
                                         <div className="flex items-center gap-2 mt-4">
-                                            <Badge variant={targetUser.providerProfile.isVerified ? 'success' : 'outline'}>
-                                                {targetUser.providerProfile.isVerified ? 'Verified' : 'Pending Verification'}
+                                            <Badge variant={targetUser.providerProfile.identityVerified ? 'success' : 'outline'}>
+                                                {targetUser.providerProfile.identityVerified ? 'Verified' : 'Pending Verification'}
                                             </Badge>
                                             <Badge variant="secondary">
                                                 Score: {targetUser.providerProfile.profileScore}%
@@ -178,14 +176,6 @@ export default async function AdminUserDetailPage({ params }: AdminUserDetailPag
                             <CardTitle>Activity</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">Messages Sent</span>
-                                <span className="font-medium font-mono">{targetUser._count.sentMessages}</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-muted-foreground">Messages Received</span>
-                                <span className="font-medium font-mono">{targetUser._count.receivedMessages}</span>
-                            </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-muted-foreground">Notifications</span>
                                 <span className="font-medium font-mono">{targetUser._count.notifications}</span>

@@ -46,6 +46,8 @@ model User {
   notificationPrefs NotificationPreference?
   adminActions      AdminActionLog[] @relation("AdminUser")
   targetedActions   AdminActionLog[] @relation("TargetUser")
+  disputeComments   DisputeComment[]
+  sentMessages      Message[]        @relation("SentMessages")
   
   @@map("users")
 }
@@ -151,6 +153,10 @@ model CustomerProfile {
   subscriptions     Subscription[]
   payments          Payment[]
   refunds           Refund[]
+  
+  // Address (added for profile completion)
+  postcode          String?
+  city              String?
   
   @@map("customer_profiles")
 }
@@ -1273,7 +1279,7 @@ model Dispute {
   
   // Relations
   evidence      DisputeEvidence[]
-  comments      DisputeComment[]
+  messages      DisputeComment[]
   
   @@index([status])
   @@map("disputes")
@@ -1300,9 +1306,11 @@ model DisputeComment {
   dispute     Dispute  @relation(fields: [disputeId], references: [id], onDelete: Cascade)
   
   authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
   authorType  DisputeParty
   content     String   @db.Text
   isInternal  Boolean  @default(false)
+  isAdminNote Boolean  @default(false)
   
   createdAt   DateTime @default(now())
   
@@ -1405,6 +1413,7 @@ model Message {
   thread      MessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
   
   senderId    String
+  sender      User       @relation("SentMessages", fields: [senderId], references: [id])
   senderType  SenderType
   
   content     String?  @db.Text

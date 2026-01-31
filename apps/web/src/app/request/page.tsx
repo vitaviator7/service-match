@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -73,7 +73,7 @@ const urgencyOptions = [
     },
 ];
 
-export default function RequestQuotePage() {
+function RequestQuoteContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { data: session, status } = useSession();
@@ -713,5 +713,17 @@ export default function RequestQuotePage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function RequestQuotePage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            </div>
+        }>
+            <RequestQuoteContent />
+        </Suspense>
     );
 }

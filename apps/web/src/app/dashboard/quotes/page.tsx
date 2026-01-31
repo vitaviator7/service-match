@@ -29,7 +29,11 @@ export default async function CustomerQuotesPage() {
     }
 
     const quotes = await prisma.quote.findMany({
-        where: { customerId: customer.id },
+        where: {
+            quoteRequest: {
+                customerId: customer.id
+            }
+        },
         include: {
             provider: true,
         },
@@ -63,7 +67,7 @@ export default async function CustomerQuotesPage() {
                                             </h3>
                                             <Badge variant={
                                                 quote.status === 'ACCEPTED' ? 'default' :
-                                                    quote.status === 'REJECTED' ? 'destructive' :
+                                                    quote.status === 'DECLINED' ? 'destructive' :
                                                         quote.status === 'EXPIRED' ? 'secondary' : 'outline'
                                             }>
                                                 {quote.status}
@@ -81,7 +85,7 @@ export default async function CustomerQuotesPage() {
                                             </div>
                                             <div className="flex items-center gap-1 text-muted-foreground">
                                                 <Calendar className="h-4 w-4" />
-                                                Expires: {new Date(quote.expiresAt).toLocaleDateString()}
+                                                Expires: {new Date(quote.validUntil).toLocaleDateString()}
                                             </div>
                                         </div>
                                     </div>
