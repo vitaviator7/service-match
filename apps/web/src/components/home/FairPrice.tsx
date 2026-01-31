@@ -5,6 +5,7 @@ import { Search, Info, TrendingUp, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function FairPrice() {
     const [query, setQuery] = useState('');
@@ -124,9 +125,11 @@ export default function FairPrice() {
                                         Based on 1,240 recent jobs in your area.
                                     </p>
 
-                                    <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 mt-4 h-12" size="lg">
-                                        Get a Guaranteed Quote for £{result.avg}
-                                    </Button>
+                                    <Link href={`/request?title=${encodeURIComponent(query)}&budgetMax=${result.avg}`} className="block mt-4">
+                                        <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 h-12" size="lg">
+                                            Get a Guaranteed Quote for £{result.avg}
+                                        </Button>
+                                    </Link>
                                 </div>
                             ) : (
                                 <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-6 text-center border-2 border-dashed border-slate-200 dark:border-slate-700">

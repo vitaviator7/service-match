@@ -188,7 +188,7 @@ export default async function ProviderDashboardPage() {
                                     complete profile gets more leads.
                                 </p>
                             </div>
-                            <Link href="/provider/settings/profile">
+                            <Link href="/provider/settings">
                                 <Button size="sm" variant="outline">
                                     Complete
                                 </Button>
@@ -204,7 +204,7 @@ export default async function ProviderDashboardPage() {
                                     Connect your bank account to start receiving payments.
                                 </p>
                             </div>
-                            <Link href="/provider/settings/payments">
+                            <Link href="/provider/settings">
                                 <Button size="sm" variant="outline">
                                     Connect
                                 </Button>

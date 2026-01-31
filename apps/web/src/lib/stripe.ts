@@ -46,10 +46,6 @@ export async function createBookingCheckoutSession(params: {
             },
         ],
         payment_intent_data: {
-            application_fee_amount: Math.round(params.platformFeeAmount * 100),
-            transfer_data: {
-                destination: params.providerConnectAccountId,
-            },
             metadata: {
                 bookingId: params.bookingId,
                 customerId: params.customerId,
@@ -74,6 +70,7 @@ export async function createSubscriptionCheckoutSession(params: {
     successUrl: string;
     cancelUrl: string;
     trialDays?: number;
+    metadata?: Record<string, string>;
 }) {
     // Get or create Stripe customer
     let stripeCustomerId: string;
@@ -95,6 +92,12 @@ export async function createSubscriptionCheckoutSession(params: {
         stripeCustomerId = customer.id;
     }
 
+    const sessionMetadata = {
+        userId: params.userId,
+        type: 'subscription',
+        ...params.metadata,
+    };
+
     const session = await stripe.checkout.sessions.create({
         mode: 'subscription',
         customer: stripeCustomerId,
@@ -104,22 +107,11 @@ export async function createSubscriptionCheckoutSession(params: {
                 quantity: 1,
             },
         ],
-        subscription_data: params.trialDays
-            ? {
-                trial_period_days: params.trialDays,
-                metadata: {
-                    userId: params.userId,
-                },
-            }
-            : {
-                metadata: {
-                    userId: params.userId,
-                },
-            },
-        metadata: {
-            userId: params.userId,
-            type: 'subscription',
+        subscription_data: {
+            trial_period_days: params.trialDays,
+            metadata: sessionMetadata,
         },
+        metadata: sessionMetadata,
         success_url: params.successUrl,
         cancel_url: params.cancelUrl,
     });

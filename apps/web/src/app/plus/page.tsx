@@ -12,10 +12,28 @@ export default function PlusPage() {
 
     const handleSubscribe = async () => {
         setLoading(true);
-        setTimeout(() => {
+        try {
+            const res = await fetch('/api/subscriptions/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planId: 'PLUS' }),
+            });
+
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error(data.error || 'Failed to create checkout session');
+            }
+        } catch (error: any) {
+            toast({
+                title: 'Error',
+                description: error.message || 'Something went wrong',
+                variant: 'destructive',
+            });
+        } finally {
             setLoading(false);
-            toast({ title: 'Redirecting to payment...' });
-        }, 1000);
+        }
     };
 
     return (

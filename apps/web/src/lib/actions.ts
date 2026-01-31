@@ -908,3 +908,67 @@ async function updateProviderStats(providerId: string) {
         },
     });
 }
+
+// =============================================================================
+// Completion Actions
+// =============================================================================
+
+export async function completeBooking(bookingId: string) {
+    const session = await requireAuth();
+
+    const provider = await prisma.providerProfile.findUnique({
+        where: { userId: session.user.id }
+    });
+
+    if (!provider) {
+        return { error: 'Unauthorized' };
+    }
+
+    const booking = await prisma.booking.findUnique({
+        where: { id: bookingId }
+    });
+
+    if (!booking || booking.providerId !== provider.id) {
+        return { error: 'Booking not found' };
+    }
+
+    if (booking.status === 'COMPLETED') {
+        return { error: 'Booking already completed' };
+    }
+
+    const updatedBooking = await prisma.booking.update({
+        where: { id: bookingId },
+        data: {
+            status: 'COMPLETED',
+            completedAt: new Date(),
+        }
+    });
+
+    // Create Payout record for Admin to process
+    await prisma.payout.create({
+        data: {
+            providerId: booking.providerId,
+            amount: booking.providerEarnings,
+            grossAmount: booking.total,
+            feesDeducted: booking.platformFee,
+            status: 'PENDING',
+            scheduledFor: new Date(),
+            bookingsCount: 1,
+        }
+    });
+
+    // Notify customer
+    await prisma.notification.create({
+        data: {
+            userId: (await prisma.customerProfile.findUnique({ where: { id: booking.customerId } }))!.userId,
+            type: 'BOOKING_COMPLETED',
+            title: 'Job Completed',
+            message: `The job "${booking.title}" has been marked as completed. Please leave a review!`,
+        }
+    });
+
+    revalidatePath(`/provider/bookings/${bookingId}`);
+    revalidatePath('/provider/bookings');
+
+    return { success: true };
+}

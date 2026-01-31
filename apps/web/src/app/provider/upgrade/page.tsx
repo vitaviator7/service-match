@@ -59,12 +59,32 @@ export default function UpgradePage() {
     const [loading, setLoading] = useState<string | null>(null);
 
     const handleUpgrade = async (plan: string) => {
+        const planKey = plan.toUpperCase();
+        if (planKey === 'STARTER') return;
+
         setLoading(plan);
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            const res = await fetch('/api/subscriptions/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ planId: planKey }),
+            });
+
+            const data = await res.json();
+            if (data.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error(data.error || 'Failed to create checkout session');
+            }
+        } catch (error: any) {
+            toast({
+                title: 'Error',
+                description: error.message || 'Something went wrong',
+                variant: 'destructive',
+            });
+        } finally {
             setLoading(null);
-            toast({ title: 'Redirecting to checkout...' });
-        }, 1000);
+        }
     };
 
     return (

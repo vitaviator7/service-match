@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, MapPin, Clock, FileText, CheckCircle, User } from 'lucide-react';
+import { CompleteBookingButton } from '@/components/provider/CompleteBookingButton';
 
 export const metadata: Metadata = {
     title: 'Job Details | Provider | Serious Control',
@@ -145,10 +146,8 @@ export default async function ProviderBookingDetailsPage({ params }: { params: {
                                 </div>
                             </div>
 
-                            {booking.status === 'PAID' && (
-                                <Button className="w-full">
-                                    Mark as Completed
-                                </Button>
+                            {(booking.status === 'PAID' || booking.status === 'ACCEPTED') && (
+                                <CompleteBookingButton bookingId={booking.id} />
                             )}
                         </CardContent>
                     </Card>

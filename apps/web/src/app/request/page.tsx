@@ -87,9 +87,10 @@ export default function RequestQuotePage() {
     const [formData, setFormData] = useState<FormData>({
         categoryId: searchParams.get('category') || '',
         title: searchParams.get('title') || '',
-        description: '',
+        description: searchParams.get('description') || '',
         urgency: '',
         postcode: '',
+        budgetMax: searchParams.get('budgetMax') ? parseInt(searchParams.get('budgetMax')!) : undefined,
         photos: [],
     });
 
@@ -203,10 +204,10 @@ export default function RequestQuotePage() {
                                 <div className="flex items-center">
                                     <div
                                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${index < currentStepIndex
-                                                ? 'bg-green-500 text-white'
-                                                : index === currentStepIndex
-                                                    ? 'bg-primary text-primary-foreground'
-                                                    : 'bg-slate-200 text-slate-600'
+                                            ? 'bg-green-500 text-white'
+                                            : index === currentStepIndex
+                                                ? 'bg-primary text-primary-foreground'
+                                                : 'bg-slate-200 text-slate-600'
                                             }`}
                                     >
                                         {index < currentStepIndex ? (
@@ -218,16 +219,16 @@ export default function RequestQuotePage() {
                                     {index < steps.length - 1 && (
                                         <div
                                             className={`flex-1 h-1 mx-2 transition-colors ${index < currentStepIndex
-                                                    ? 'bg-green-500'
-                                                    : 'bg-slate-200'
+                                                ? 'bg-green-500'
+                                                : 'bg-slate-200'
                                                 }`}
                                         />
                                     )}
                                 </div>
                                 <span
                                     className={`absolute -bottom-6 text-xs whitespace-nowrap left-0 ${index === currentStepIndex
-                                            ? 'text-primary font-medium'
-                                            : 'text-muted-foreground'
+                                        ? 'text-primary font-medium'
+                                        : 'text-muted-foreground'
                                         }`}
                                 >
                                     {step.label}
@@ -261,8 +262,8 @@ export default function RequestQuotePage() {
                                                 })
                                             }
                                             className={`p-4 rounded-xl border-2 text-left transition-all ${formData.categoryId === category.id
-                                                    ? 'border-primary bg-primary/5'
-                                                    : 'border-slate-200 hover:border-slate-300'
+                                                ? 'border-primary bg-primary/5'
+                                                : 'border-slate-200 hover:border-slate-300'
                                                 }`}
                                         >
                                             <span className="text-2xl mb-2 block">
@@ -291,8 +292,8 @@ export default function RequestQuotePage() {
                                                         })
                                                     }
                                                     className={`px-4 py-2 rounded-full border transition-all ${formData.subcategoryId === sub.id
-                                                            ? 'border-primary bg-primary text-primary-foreground'
-                                                            : 'border-slate-200 hover:border-slate-300'
+                                                        ? 'border-primary bg-primary text-primary-foreground'
+                                                        : 'border-slate-200 hover:border-slate-300'
                                                         }`}
                                                 >
                                                     {sub.name}
@@ -426,8 +427,8 @@ export default function RequestQuotePage() {
                                                     })
                                                 }
                                                 className={`w-full p-4 rounded-xl border-2 text-left flex items-center gap-4 transition-all ${formData.urgency === option.value
-                                                        ? 'border-primary bg-primary/5'
-                                                        : option.className
+                                                    ? 'border-primary bg-primary/5'
+                                                    : option.className
                                                     }`}
                                             >
                                                 <Icon className="h-6 w-6" />

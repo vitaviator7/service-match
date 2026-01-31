@@ -7,14 +7,21 @@ import { prisma } from '@service-match/db';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Calendar, MapPin, Clock, FileText, CheckCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Clock, FileText, CheckCircle, Star } from 'lucide-react';
 import { BookingPayment } from '@/components/bookings/BookingPayment';
+import { BookingReviewButton } from '@/components/bookings/BookingReviewButton';
 
 export const metadata: Metadata = {
     title: 'Booking Details | Serious Control',
 };
 
-export default async function BookingDetailsPage({ params }: { params: { id: string } }) {
+export default async function BookingDetailsPage({
+    params,
+    searchParams
+}: {
+    params: { id: string },
+    searchParams: { [key: string]: string | string[] | undefined }
+}) {
     const session = await getSession();
 
     if (!session?.user) {
@@ -35,6 +42,7 @@ export default async function BookingDetailsPage({ params }: { params: { id: str
             provider: true,
             service: true,
             quote: true,
+            review: true,
         },
     });
 
@@ -128,6 +136,26 @@ export default async function BookingDetailsPage({ params }: { params: { id: str
                 </div>
 
                 <div>
+                    {searchParams.payment === 'success' && booking.paymentStatus === 'PENDING' && (
+                        <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-lg flex items-start gap-3">
+                            <Clock className="h-5 w-5 mt-0.5 animate-pulse" />
+                            <div>
+                                <p className="font-semibold">Processing Payment...</p>
+                                <p className="text-sm">We're just confirming your payment with Stripe. This should only take a few seconds.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {searchParams.payment === 'cancelled' && (
+                        <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-700 p-4 rounded-lg flex items-start gap-3">
+                            <FileText className="h-5 w-5 mt-0.5" />
+                            <div>
+                                <p className="font-semibold">Payment Cancelled</p>
+                                <p className="text-sm">The payment process was cancelled. You can try again below.</p>
+                            </div>
+                        </div>
+                    )}
+
                     <Card>
                         <CardHeader>
                             <CardTitle>Summary</CardTitle>
@@ -153,10 +181,18 @@ export default async function BookingDetailsPage({ params }: { params: { id: str
                                     bookingId={booking.id}
                                     amount={Number(booking.total)}
                                 />
+                            ) : booking.status === 'COMPLETED' ? (
+                                <BookingReviewButton
+                                    bookingId={booking.id}
+                                    providerName={booking.provider.businessName}
+                                    serviceName={booking.service?.name || booking.title}
+                                    hasReview={!!booking.review}
+                                />
                             ) : (
                                 <div className="bg-green-50 p-4 rounded-lg text-center text-green-700 border border-green-200">
                                     <CheckCircle className="h-6 w-6 mx-auto mb-2" />
                                     <p className="font-medium">Booking Confirmed</p>
+                                    <p className="text-sm text-green-600 mt-1">Payment successfully received</p>
                                 </div>
                             )}
                         </CardContent>

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, Upload, Sparkles, CheckCircle2, ScanLine, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import Link from 'next/link';
 
 export default function SnapFix() {
     const [state, setState] = useState<'idle' | 'uploading' | 'scanning' | 'complete'>('idle');
@@ -133,9 +134,11 @@ export default function SnapFix() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <Button size="lg" className="w-full bg-green-600 hover:bg-green-700">
-                                Find Boiler Specialists
-                            </Button>
+                            <Link href="/request?category=plumbing&title=Boiler%20Repair&description=Potterton%20Boiler%20-%20Likely%20Diverter%20Valve%20Fault%20identified%20by%20SnapFix%20AI" className="w-full">
+                                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700">
+                                    Find Boiler Specialists
+                                </Button>
+                            </Link>
                             <Button variant="outline" size="lg" className="w-full" onClick={reset}>
                                 Scan Another Item
                             </Button>
