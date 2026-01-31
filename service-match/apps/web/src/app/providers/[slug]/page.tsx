@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const categories = [...new Set(provider.services.map((s) => s.category.name))];
 
     return {
-        title: `${provider.businessName} - ${categories.join(', ')} | ServiceMatch`,
+        title: `${provider.businessName} - ${categories.join(', ')} | Serious Control`,
         description:
             provider.shortBio ||
             `${provider.businessName} offers professional ${categories.join(', ').toLowerCase()} services. ${provider.totalReviews} reviews, ${provider.avgRating?.toFixed(1) || 'New'} rating.`,

@@ -1,5 +1,5 @@
 // =============================================================================
-// ServiceMatch Utility Functions
+// Serious Control Utility Functions
 // =============================================================================
 
 import { PLATFORM_FEES, BOOKING_TRANSITIONS, QUOTE_TRANSITIONS } from './constants';

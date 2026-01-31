@@ -10,7 +10,7 @@ import { ArrowLeft, Calendar, MapPin, Clock, FileText, CheckCircle } from 'lucid
 import { BookingPayment } from '@/components/bookings/BookingPayment';
 
 export const metadata: Metadata = {
-    title: 'Booking Details | ServiceMatch',
+    title: 'Booking Details | Serious Control',
 };
 
 export default async function BookingDetailsPage({ params }: { params: { id: string } }) {

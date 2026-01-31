@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Calendar, MapPin, ArrowRight, DollarSign } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'My Bookings | ServiceMatch',
+    title: 'My Bookings | Serious Control',
 };
 
 export default async function CustomerBookingsPage() {

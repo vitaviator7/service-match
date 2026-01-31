@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
 export const metadata: Metadata = {
-    title: 'Settings | ServiceMatch',
+    title: 'Settings | Serious Control',
 };
 
 export default async function SettingsPage() {

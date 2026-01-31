@@ -175,7 +175,7 @@ export default function ProviderOnboardingPage() {
                 {/* Logo */}
                 <div className="text-center mb-8">
                     <Link href="/" className="inline-block">
-                        <span className="text-2xl font-bold text-primary">ServiceMatch</span>
+                        <span className="text-2xl font-bold text-primary">Serious Control</span>
                     </Link>
                     <h1 className="text-2xl font-bold mt-4">Become a Provider</h1>
                     <p className="text-muted-foreground">

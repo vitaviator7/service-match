@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, MapPin, Calendar, Clock, FileText, ImageIcon } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Lead Details | Provider | ServiceMatch',
+    title: 'Lead Details | Provider | Serious Control',
 };
 
 export default async function LeadDetailsPage({ params }: { params: { id: string } }) {

@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Disputes | Admin | ServiceMatch',
+    title: 'Disputes | Admin | Serious Control',
     description: 'Manage and resolve customer disputes',
 };
 

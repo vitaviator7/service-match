@@ -42,7 +42,7 @@ export async function processPayouts() {
             const stripePayout = await createPayoutToProvider({
                 accountId: provider.stripeAccountId!,
                 amount: provider.availableBalance,
-                description: `ServiceMatch weekly payout - ${new Date().toISOString().split('T')[0]}`,
+                description: `Serious Control weekly payout - ${new Date().toISOString().split('T')[0]}`,
                 metadata: {
                     payoutId: payout.id,
                     providerId: provider.id,

@@ -46,7 +46,7 @@ export async function sendSMS({ to, message }: SendSMSParams) {
 export async function sendVerificationCode(phone: string, code: string) {
     await sendSMS({
         to: phone,
-        message: `Your ServiceMatch verification code is: ${code}. This code expires in 10 minutes.`,
+        message: `Your Serious Control verification code is: ${code}. This code expires in 10 minutes.`,
     });
 }
 
@@ -76,7 +76,7 @@ export async function sendNewQuoteSMS(
 ) {
     await sendSMS({
         to: phone,
-        message: `New quote received! ${data.providerName} quoted £${data.amount}. View quotes in the ServiceMatch app.`,
+        message: `New quote received! ${data.providerName} quoted £${data.amount}. View quotes in the Serious Control app.`,
     });
 }
 
@@ -91,6 +91,6 @@ export async function sendBookingConfirmationSMS(
 ) {
     await sendSMS({
         to: phone,
-        message: `Booking confirmed! Your ${data.service} is scheduled for ${data.date} at ${data.time}. View details in ServiceMatch.`,
+        message: `Booking confirmed! Your ${data.service} is scheduled for ${data.date} at ${data.time}. View details in Serious Control.`,
     });
 }

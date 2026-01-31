@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 221 83% 53%;
+    --primary: 230 20% 12%; /* Charcoal Slate */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96%;
@@ -36,7 +36,7 @@
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --ring: 230 20% 20%;
 
     --radius: 0.5rem;
   }
@@ -51,7 +51,7 @@
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 210 40% 98%;
     --primary-foreground: 222 47% 11%;
 
     --secondary: 217 33% 17%;
@@ -74,7 +74,7 @@
 
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 224 76% 48%;
+    --ring: 214 32% 91%;
   }
 }
 
@@ -94,11 +94,11 @@
   }
   
   .gradient-primary {
-    @apply bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500;
+    @apply bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900;
   }
   
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-cyan-500;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-indigo-600 dark:from-white dark:to-slate-400;
   }
   
   .glass {

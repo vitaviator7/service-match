@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { StripeConnectButton } from '@/components/provider/StripeConnectButton';
 
 export const metadata: Metadata = {
-    title: 'Settings | Provider | ServiceMatch',
+    title: 'Settings | Provider | Serious Control',
 };
 
 export default async function ProviderSettingsPage() {

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Reports | Admin | ServiceMatch',
+    title: 'Reports | Admin | Serious Control',
     description: 'Platform analytics and reporting',
 };
 

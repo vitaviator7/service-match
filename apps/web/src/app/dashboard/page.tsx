@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Dashboard | ServiceMatch',
+    title: 'Dashboard | Serious Control',
     description: 'Manage your bookings, quotes, and messages',
 };
 

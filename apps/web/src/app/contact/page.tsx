@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Mail, Phone, MapPin } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Contact Us | ServiceMatch',
-    description: 'Get in touch with the ServiceMatch team.',
+    title: 'Contact Us | Serious Control',
+    description: 'Get in touch with the Serious Control team.',
 };
 
 export default function ContactPage() {
@@ -44,7 +44,7 @@ export default function ContactPage() {
                             <div>
                                 <h3 className="font-semibold mb-1">Office</h3>
                                 <p className="text-muted-foreground text-sm">
-                                    ServiceMatch Ltd<br />
+                                    Serious Control Ltd<br />
                                     123 Innovation Way<br />
                                     London, EC1A 1BB
                                 </p>

@@ -170,7 +170,7 @@ export default function HomePage() {
                 <div className="container mx-auto px-4">
                     <div className="bg-gradient-to-br from-blue-600 to-cyan-500 rounded-3xl p-8 md:p-12 text-center text-white">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                            Grow Your Business with ServiceMatch
+                            Grow Your Business with Serious Control
                         </h2>
                         <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
                             Join thousands of professionals earning more with qualified leads.
@@ -195,7 +195,7 @@ export default function HomePage() {
                                 <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
                                     <Zap className="w-6 h-6 text-white" />
                                 </div>
-                                <span className="text-xl font-bold text-white">ServiceMatch</span>
+                                <span className="text-xl font-bold text-white">Serious Control</span>
                             </Link>
                             <p className="text-slate-400 text-sm">
                                 The UK's trusted marketplace for local services. Find verified professionals for any job.
@@ -233,7 +233,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="border-t border-slate-800 pt-8 text-center text-sm text-slate-400">
-                        <p>© {new Date().getFullYear()} ServiceMatch Ltd. All rights reserved.</p>
+                        <p>© {new Date().getFullYear()} Serious Control Ltd. All rights reserved.</p>
                     </div>
                 </div>
             </footer>

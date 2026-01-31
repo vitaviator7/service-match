@@ -9,7 +9,7 @@ import { Calendar, Clock, MapPin, ArrowRight, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export const metadata: Metadata = {
-    title: 'My Quotes | Provider | ServiceMatch',
+    title: 'My Quotes | Provider | Serious Control',
 };
 
 export default async function ProviderQuotesPage() {

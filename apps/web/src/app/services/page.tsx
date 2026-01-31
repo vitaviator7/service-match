@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Wrench, Zap, Home, Paintbrush, Truck, MoreHorizontal } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Browse Services | ServiceMatch',
+    title: 'Browse Services | Serious Control',
     description: 'Find trusted local professionals for any job.',
 };
 

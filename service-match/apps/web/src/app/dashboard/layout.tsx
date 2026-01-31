@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 export const metadata: Metadata = {
-    title: 'Dashboard | ServiceMatch',
+    title: 'Dashboard | Serious Control',
 };
 
 export default async function DashboardLayout({

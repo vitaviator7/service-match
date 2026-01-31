@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Provider Dashboard | ServiceMatch',
+    title: 'Provider Dashboard | Serious Control',
     description: 'Manage your leads, quotes, bookings, and earnings',
 };
 

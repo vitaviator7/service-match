@@ -1,5 +1,5 @@
 // =============================================================================
-// ServiceMatch Worker Service
+// Serious Control Worker Service
 // Background job processing with BullMQ
 // =============================================================================
 
@@ -20,7 +20,7 @@ const connection = new IORedis(process.env.REDIS_URL!, {
     maxRetriesPerRequest: null,
 });
 
-console.log('🚀 ServiceMatch Worker starting...');
+console.log('🚀 Serious Control Worker starting...');
 
 // =============================================================================
 // Queue Definitions
@@ -302,5 +302,5 @@ process.on('SIGINT', shutdown);
 // =============================================================================
 
 setupRecurringJobs().then(() => {
-    console.log('✅ ServiceMatch Worker running');
+    console.log('✅ Serious Control Worker running');
 });

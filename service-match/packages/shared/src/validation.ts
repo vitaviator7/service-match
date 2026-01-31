@@ -1,5 +1,5 @@
 // =============================================================================
-// ServiceMatch Zod Validation Schemas
+// Serious Control Zod Validation Schemas
 // =============================================================================
 
 import { z } from 'zod';

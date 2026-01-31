@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Admin Dashboard | ServiceMatch',
+    title: 'Admin Dashboard | Serious Control',
     description: 'Platform administration and operations',
 };
 

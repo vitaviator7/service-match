@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-    title: 'Careers | ServiceMatch',
+    title: 'Careers | Serious Control',
 };
 
 export default function CareersPage() {

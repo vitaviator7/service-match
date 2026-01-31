@@ -1,4 +1,4 @@
-# ServiceMatch UK Marketplace
+# Serious Control UK Marketplace
 
 A production-ready, full-stack UK local services marketplace covering any trade/service vertical (plumbing, electrical, cleaning, tutoring, beauty, handyman, etc.).
 

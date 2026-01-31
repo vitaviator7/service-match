@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Users | Admin | ServiceMatch',
+    title: 'Users | Admin | Serious Control',
     description: 'Manage users on the platform',
 };
 

@@ -1,5 +1,5 @@
 // =============================================================================
-// ServiceMatch Shared Types, Constants, and Utilities
+// Serious Control Shared Types, Constants, and Utilities
 // =============================================================================
 
 export * from './types';

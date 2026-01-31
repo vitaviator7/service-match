@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Zap, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { ShieldCheck, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,9 +90,9 @@ export default function SignInPage() {
             <div className="w-full max-w-md">
                 <Link href="/" className="flex items-center justify-center gap-2 mb-8">
                     <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center">
-                        <Zap className="w-6 h-6 text-white" />
+                        <ShieldCheck className="w-6 h-6 text-white" />
                     </div>
-                    <span className="text-xl font-bold">ServiceMatch</span>
+                    <span className="text-xl font-bold">Serious Control</span>
                 </Link>
 
                 <Card className="shadow-lg">

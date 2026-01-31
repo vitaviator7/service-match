@@ -4,7 +4,7 @@ import sgMail from '@sendgrid/mail';
 sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
 
 const FROM_EMAIL = process.env.SENDGRID_FROM_EMAIL || 'noreply@servicematch.co.uk';
-const FROM_NAME = 'ServiceMatch';
+const FROM_NAME = 'Serious Control';
 
 // Email template IDs (from SendGrid dynamic templates)
 const TEMPLATES = {

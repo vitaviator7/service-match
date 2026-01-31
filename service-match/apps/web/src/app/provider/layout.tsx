@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 export const metadata: Metadata = {
-    title: 'Provider Dashboard | ServiceMatch',
+    title: 'Provider Dashboard | Serious Control',
 };
 
 export default async function ProviderLayout({

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, Search, MessageSquare, Calendar, CreditCard } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'How It Works | ServiceMatch',
+    title: 'How It Works | Serious Control',
     description: 'Learn how to find and book trusted local professionals.',
 };
 
@@ -12,7 +12,7 @@ export default function HowItWorksPage() {
     return (
         <div className="container mx-auto px-4 py-12 min-h-screen">
             <div className="text-center mb-16">
-                <h1 className="text-4xl font-bold mb-4">How ServiceMatch Works</h1>
+                <h1 className="text-4xl font-bold mb-4">How Serious Control Works</h1>
                 <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
                     We make it easy to find, book, and pay for reliable local services.
                 </p>

@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: ServicePageProps): Promise<Me
     if (!category) return { title: 'Not Found' };
 
     return {
-        title: `${category.name} Services | ServiceMatch`,
+        title: `${category.name} Services | Serious Control`,
         description: category.description || `Find trusted ${category.name} professionals near you.`,
     };
 }
@@ -70,7 +70,7 @@ export default async function ServicePage({ params }: ServicePageProps) {
                     // Leaf Category (No subcategories) Content
                     <div className="grid md:grid-cols-2 gap-12 items-center">
                         <div className="space-y-6">
-                            <h2 className="text-2xl font-bold">Why use ServiceMatch?</h2>
+                            <h2 className="text-2xl font-bold">Why use Serious Control?</h2>
                             <div className="space-y-4">
                                 <div className="flex gap-4">
                                     <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">

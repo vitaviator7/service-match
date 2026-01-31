@@ -1,7 +1,7 @@
 #!/bin/bash
 git init
 git add .
-git commit -m "Initial commit for ServiceMatch"
+git commit -m "Initial commit for Serious Control"
 # Remove existing remote if any
 git remote remove origin || true
 # Add new remote

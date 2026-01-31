@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-    title: 'About Us | ServiceMatch',
-    description: 'The story behind ServiceMatch.',
+    title: 'About Us | Serious Control',
+    description: 'The story behind Serious Control.',
 };
 
 export default function AboutPage() {
@@ -14,11 +14,11 @@ export default function AboutPage() {
 
                 <div className="prose prose-lg dark:prose-invert">
                     <p className="lead text-xl text-muted-foreground mb-6">
-                        ServiceMatch is the UK's most trusted marketplace for connecting homeowners with local, vetted professionals.
+                        Serious Control is the UK's most trusted marketplace for connecting homeowners with local, vetted professionals.
                     </p>
 
                     <p>
-                        Founded in 2024, our mission is to simplify the traditionally chaotic process of finding reliable tradespeople. whether you need a plumber for an emergency leak, an electrician for a new installation, or a cleaner for regular upkeep, ServiceMatch brings the professionals to you.
+                        Founded in 2024, our mission is to simplify the traditionally chaotic process of finding reliable tradespeople. whether you need a plumber for an emergency leak, an electrician for a new installation, or a cleaner for regular upkeep, Serious Control brings the professionals to you.
                     </p>
 
                     <h2 className="text-2xl font-bold mt-12 mb-4">Our Values</h2>

@@ -1,5 +1,5 @@
 // =============================================================================
-// ServiceMatch Database Seed Script
+// Serious Control Database Seed Script
 // =============================================================================
 
 import { PrismaClient, UserRole, ProviderTier, ProviderStatus, CategorySlug } from '@prisma/client';
@@ -295,7 +295,7 @@ async function main() {
                 icon: cat.icon,
                 description: cat.description,
                 displayOrder: i,
-                metaTitle: `${cat.name} Services Near You | ServiceMatch`,
+                metaTitle: `${cat.name} Services Near You | Serious Control`,
                 metaDescription: `Find trusted ${cat.name.toLowerCase()} professionals in your area. Compare quotes, read reviews, and book with confidence. Free quotes, no obligation.`,
             },
         });
@@ -331,7 +331,7 @@ async function main() {
                 longitude: city.longitude,
                 population: city.population,
                 displayOrder: i,
-                metaTitle: `Local Services in ${city.name} | ServiceMatch`,
+                metaTitle: `Local Services in ${city.name} | Serious Control`,
                 metaDescription: `Find trusted tradespeople and service providers in ${city.name}. Get free quotes from verified professionals. Plumbers, electricians, cleaners, and more.`,
             },
         });
@@ -380,7 +380,7 @@ async function main() {
         { key: 'seo_min_providers', value: '3', type: 'NUMBER', description: 'Minimum providers before indexing a page' },
         { key: 'seo_min_reviews', value: '1', type: 'NUMBER', description: 'Minimum reviews before indexing a page' },
         { key: 'support_email', value: 'support@servicematch.co.uk', type: 'STRING', description: 'Support email address' },
-        { key: 'company_name', value: 'ServiceMatch Ltd', type: 'STRING', description: 'Company legal name' },
+        { key: 'company_name', value: 'Serious Control Ltd', type: 'STRING', description: 'Company legal name' },
         { key: 'company_address', value: '123 High Street, London, EC1A 1BB', type: 'STRING', description: 'Company registered address' },
     ];
 
@@ -570,7 +570,7 @@ async function main() {
                 categoryId: category.id,
                 blockType: 'INTRO',
                 title: `Find Trusted ${category.name} Professionals`,
-                content: `Looking for reliable ${category.name.toLowerCase()} services? ServiceMatch connects you with verified professionals in your area. Compare quotes, read genuine reviews, and book with confidence. All our ${category.name.toLowerCase()} professionals are vetted and insured for your peace of mind.`,
+                content: `Looking for reliable ${category.name.toLowerCase()} services? Serious Control connects you with verified professionals in your area. Compare quotes, read genuine reviews, and book with confidence. All our ${category.name.toLowerCase()} professionals are vetted and insured for your peace of mind.`,
             },
         });
 
@@ -582,8 +582,8 @@ async function main() {
                 title: `Frequently Asked Questions About ${category.name}`,
                 content: JSON.stringify([
                     { q: `How much does ${category.name.toLowerCase()} cost?`, a: `${category.name} costs vary depending on the job. Get free quotes from multiple professionals to compare prices.` },
-                    { q: `How do I find a reliable ${category.name.toLowerCase()} professional?`, a: `Check reviews, verify credentials, and compare quotes on ServiceMatch to find the best match for your needs.` },
-                    { q: 'Are professionals on ServiceMatch verified?', a: 'Yes, we verify identity, insurance, and qualifications where applicable. Look for the verified badge on profiles.' },
+                    { q: `How do I find a reliable ${category.name.toLowerCase()} professional?`, a: `Check reviews, verify credentials, and compare quotes on Serious Control to find the best match for your needs.` },
+                    { q: 'Are professionals on Serious Control verified?', a: 'Yes, we verify identity, insurance, and qualifications where applicable. Look for the verified badge on profiles.' },
                 ]),
             },
         });
@@ -596,7 +596,7 @@ async function main() {
                 cityId: city.id,
                 blockType: 'INTRO',
                 title: `Local Services in ${city.name}`,
-                content: `Find trusted tradespeople and service providers in ${city.name} and the surrounding ${city.county || city.region} area. From plumbers to cleaners, electricians to gardeners, ServiceMatch connects you with verified local professionals. Get free quotes and book online with confidence.`,
+                content: `Find trusted tradespeople and service providers in ${city.name} and the surrounding ${city.county || city.region} area. From plumbers to cleaners, electricians to gardeners, Serious Control connects you with verified local professionals. Get free quotes and book online with confidence.`,
             },
         });
     }

@@ -5,7 +5,7 @@ import { getSession } from '@/lib/auth';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 export const metadata: Metadata = {
-    title: 'Admin | ServiceMatch',
+    title: 'Admin | Serious Control',
 };
 
 export default async function AdminLayout({
@@ -26,7 +26,7 @@ export default async function AdminLayout({
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between h-12">
                         <div className="flex items-center gap-6">
-                            <span className="font-bold text-lg">ServiceMatch Admin</span>
+                            <span className="font-bold text-lg">Serious Control Admin</span>
                         </div>
                         <nav className="flex items-center gap-6 overflow-x-auto">
                             <AdminNavLink href="/admin">Dashboard</AdminNavLink>

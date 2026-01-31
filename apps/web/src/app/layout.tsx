@@ -12,8 +12,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
     title: {
-        default: 'ServiceMatch - Find Trusted Local Professionals',
-        template: '%s | ServiceMatch',
+        default: 'Serious Control - Find Trusted Local Professionals',
+        template: '%s | Serious Control',
     },
     description:
         'Find trusted tradespeople and service providers in your area. Get free quotes from verified plumbers, electricians, cleaners, and more. Book with confidence.',
@@ -29,30 +29,30 @@ export const metadata: Metadata = {
         'find tradesman',
         'get quotes',
     ],
-    authors: [{ name: 'ServiceMatch' }],
-    creator: 'ServiceMatch',
-    publisher: 'ServiceMatch',
+    authors: [{ name: 'Serious Control' }],
+    creator: 'Serious Control',
+    publisher: 'Serious Control',
     metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://servicematch.co.uk'),
     openGraph: {
         type: 'website',
         locale: 'en_GB',
         url: '/',
-        title: 'ServiceMatch - Find Trusted Local Professionals',
+        title: 'Serious Control - Find Trusted Local Professionals',
         description:
             'Find trusted tradespeople and service providers in your area. Get free quotes from verified professionals.',
-        siteName: 'ServiceMatch',
+        siteName: 'Serious Control',
         images: [
             {
                 url: '/og-image.png',
                 width: 1200,
                 height: 630,
-                alt: 'ServiceMatch - Find Trusted Local Professionals',
+                alt: 'Serious Control - Find Trusted Local Professionals',
             },
         ],
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'ServiceMatch - Find Trusted Local Professionals',
+        title: 'Serious Control - Find Trusted Local Professionals',
         description:
             'Find trusted tradespeople and service providers in your area. Get free quotes from verified professionals.',
         images: ['/og-image.png'],

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, MapPin, Clock, FileText, CheckCircle, User } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Job Details | Provider | ServiceMatch',
+    title: 'Job Details | Provider | Serious Control',
 };
 
 export default async function ProviderBookingDetailsPage({ params }: { params: { id: string } }) {

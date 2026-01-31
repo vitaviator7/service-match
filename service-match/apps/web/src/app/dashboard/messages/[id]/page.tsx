@@ -7,7 +7,7 @@ import { ChatInterface } from '@/components/chat/ChatInterface';
 import { ArrowLeft } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Chat | ServiceMatch',
+    title: 'Chat | Serious Control',
 };
 
 export default async function CustomerChatPage({ params }: { params: { id: string } }) {

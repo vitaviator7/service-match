@@ -18,7 +18,7 @@ import {
 import { QuoteComparisonWrapper } from './quote-comparison-wrapper';
 
 export const metadata: Metadata = {
-    title: 'View Quotes | ServiceMatch',
+    title: 'View Quotes | Serious Control',
     description: 'Compare quotes from local professionals',
 };
 

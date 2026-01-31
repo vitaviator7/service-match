@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export const metadata: Metadata = {
-    title: 'Bookings | Admin | ServiceMatch',
+    title: 'Bookings | Admin | Serious Control',
     description: 'Manage all bookings on the platform',
 };
 

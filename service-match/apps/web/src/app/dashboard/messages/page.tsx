@@ -9,7 +9,7 @@ import { MessageSquare, Clock, User, Building2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 export const metadata: Metadata = {
-    title: 'Messages | ServiceMatch',
+    title: 'Messages | Serious Control',
     description: 'Your conversations with service providers',
 };
 
