@@ -114,6 +114,8 @@ async function updatePageIndexStatus() {
             create: {
                 pageType: 'CATEGORY',
                 categoryId: category.id,
+                categorySlug: category.slug,
+                path: `/services/${category.slug}`,
                 shouldIndex: hasEnoughProviders && hasContent,
                 lastCheckedAt: new Date(),
             },

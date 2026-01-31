@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
 import { createBookingCheckoutSession } from '@/lib/stripe';
+export const dynamic = 'force-dynamic';
 
 export async function POST(
     req: NextRequest,

@@ -6,6 +6,7 @@
 import { Worker, Queue } from 'bullmq';
 import IORedis from 'ioredis';
 import { prisma } from '@service-match/db';
+import { Prisma } from '@prisma/client';
 import { sendEmail } from './services/email';
 import { sendSMS } from './services/sms';
 import { sendPushNotification } from './services/push';
@@ -84,7 +85,7 @@ const smsWorker = new Worker(
                 where: { userId },
             });
 
-            if (!prefs?.smsEnabled) {
+            if (!prefs?.smsTransactional) {
                 console.log(`📱 SMS disabled for user ${userId}, skipping`);
                 return;
             }
@@ -198,7 +199,7 @@ async function autoConfirmBookings() {
     });
 
     for (const booking of bookings) {
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
             // Confirm booking
             await tx.booking.update({
                 where: { id: booking.id },
@@ -215,13 +216,13 @@ async function autoConfirmBookings() {
             });
 
             // Create ledger entry
-            await tx.ledger.create({
+            await tx.ledgerEntry.create({
                 data: {
                     providerId: booking.providerId,
                     bookingId: booking.id,
                     type: 'BOOKING_CONFIRMED',
                     amount: booking.providerEarnings,
-                    balance: 0,
+                    runningBalance: 0,
                     description: `Booking #${booking.id.slice(0, 8)} auto-confirmed`,
                 },
             });

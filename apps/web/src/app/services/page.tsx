@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { prisma } from '@service-match/db';
+export const dynamic = 'force-dynamic';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Wrench, Zap, Home, Paintbrush, Truck, MoreHorizontal } from 'lucide-react';
 

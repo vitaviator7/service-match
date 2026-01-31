@@ -10,8 +10,8 @@ interface Notification {
     id: string;
     type: string;
     title: string;
-    body: string;
-    isRead: boolean;
+    message: string;
+    readAt: string | null;
     createdAt: string;
     data?: Record<string, any>;
 }
@@ -51,7 +51,7 @@ export function NotificationBell() {
         try {
             await fetch(`/api/notifications/${id}/read`, { method: 'POST' });
             setNotifications((prev) =>
-                prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+                prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n))
             );
             setUnreadCount((prev) => Math.max(0, prev - 1));
         } catch (error) {
@@ -62,7 +62,7 @@ export function NotificationBell() {
     const markAllAsRead = async () => {
         try {
             await fetch('/api/notifications/read-all', { method: 'POST' });
-            setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+            setNotifications((prev) => prev.map((n) => ({ ...n, readAt: new Date().toISOString() })));
             setUnreadCount(0);
         } catch (error) {
             console.error('Error marking all notifications as read:', error);
@@ -141,10 +141,10 @@ export function NotificationBell() {
                                 notifications.map((notification) => (
                                     <div
                                         key={notification.id}
-                                        className={`p-4 border-b hover:bg-slate-50 cursor-pointer transition-colors ${!notification.isRead ? 'bg-blue-50/50' : ''
+                                        className={`p-4 border-b hover:bg-slate-50 cursor-pointer transition-colors ${!notification.readAt ? 'bg-blue-50/50' : ''
                                             }`}
                                         onClick={() => {
-                                            if (!notification.isRead) {
+                                            if (!notification.readAt) {
                                                 markAsRead(notification.id);
                                             }
                                         }}
@@ -158,7 +158,7 @@ export function NotificationBell() {
                                                     {notification.title}
                                                 </p>
                                                 <p className="text-sm text-muted-foreground line-clamp-2">
-                                                    {notification.body}
+                                                    {notification.message}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground mt-1">
                                                     {formatDistanceToNow(
@@ -167,7 +167,7 @@ export function NotificationBell() {
                                                     )}
                                                 </p>
                                             </div>
-                                            {!notification.isRead && (
+                                            {!notification.readAt && (
                                                 <div className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-2" />
                                             )}
                                         </div>

@@ -41,14 +41,14 @@ export default async function AdminReportsPage() {
                 status: 'COMPLETED',
                 completedAt: { gte: startOfMonth },
             },
-            _sum: { totalAmount: true },
+            _sum: { total: true },
         }),
         prisma.booking.aggregate({
             where: {
                 status: 'COMPLETED',
                 completedAt: { gte: startOfLastMonth, lte: endOfLastMonth },
             },
-            _sum: { totalAmount: true },
+            _sum: { total: true },
         }),
         prisma.booking.aggregate({
             where: {
@@ -77,7 +77,7 @@ export default async function AdminReportsPage() {
         }),
         prisma.booking.aggregate({
             where: { status: 'COMPLETED' },
-            _avg: { totalAmount: true },
+            _avg: { total: true },
         }),
     ]);
 
@@ -119,11 +119,11 @@ export default async function AdminReportsPage() {
     });
 
     const categories = await prisma.category.findMany({
-        where: { id: { in: topCategories.map((c) => c.categoryId) } },
+        where: { id: { in: topCategories.map((c: any) => c.categoryId) } },
     });
 
-    const topCategoriesWithNames = topCategories.map((tc) => ({
-        name: categories.find((c) => c.id === tc.categoryId)?.name || 'Unknown',
+    const topCategoriesWithNames = topCategories.map((tc: any) => ({
+        name: categories.find((c: any) => c.id === tc.categoryId)?.name || 'Unknown',
         count: tc._count.id,
     }));
 
@@ -141,9 +141,9 @@ export default async function AdminReportsPage() {
 
     // Calculate changes
     const revenueChange =
-        lastMonthRevenue._sum.totalAmount && lastMonthRevenue._sum.totalAmount > 0
-            ? (((thisMonthRevenue._sum.totalAmount || 0) - lastMonthRevenue._sum.totalAmount) /
-                lastMonthRevenue._sum.totalAmount) *
+        (lastMonthRevenue as any)._sum.total && (lastMonthRevenue as any)._sum.total > 0
+            ? ((((thisMonthRevenue as any)._sum.total || 0) - (lastMonthRevenue as any)._sum.total) /
+                (lastMonthRevenue as any)._sum.total) *
             100
             : 0;
 
@@ -167,23 +167,23 @@ export default async function AdminReportsPage() {
                 <div className="grid md:grid-cols-4 gap-4">
                     <MetricCard
                         title="Gross Revenue"
-                        value={`£${((thisMonthRevenue._sum.totalAmount || 0) / 100).toLocaleString()}`}
+                        value={`£${(((thisMonthRevenue as any)._sum.total || 0) / 100).toLocaleString()}`}
                         change={revenueChange}
                         icon={DollarSign}
                     />
                     <MetricCard
                         title="Platform Fees"
-                        value={`£${((thisMonthPlatformFees._sum.platformFee || 0) / 100).toLocaleString()}`}
+                        value={`£${(((thisMonthPlatformFees as any)._sum.platformFee || 0) / 100).toLocaleString()}`}
                         icon={TrendingUp}
                     />
                     <MetricCard
                         title="Avg Booking Value"
-                        value={`£${((avgBookingValue._avg.totalAmount || 0) / 100).toFixed(2)}`}
+                        value={`£${(((avgBookingValue as any)._avg.total || 0) / 100).toFixed(2)}`}
                         icon={DollarSign}
                     />
                     <MetricCard
                         title="Last Month"
-                        value={`£${((lastMonthRevenue._sum.totalAmount || 0) / 100).toLocaleString()}`}
+                        value={`£${(((lastMonthRevenue as any)._sum.total || 0) / 100).toLocaleString()}`}
                         subtitle="Comparison"
                         icon={Calendar}
                     />
@@ -259,7 +259,7 @@ export default async function AdminReportsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {topCategoriesWithNames.map((category, index) => (
+                            {topCategoriesWithNames.map((category: any, index: number) => (
                                 <div key={index} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-sm flex items-center justify-center font-medium">
@@ -286,7 +286,7 @@ export default async function AdminReportsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {topProviders.map((provider, index) => (
+                            {topProviders.map((provider: any, index: number) => (
                                 <div key={index} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-sm flex items-center justify-center font-medium">

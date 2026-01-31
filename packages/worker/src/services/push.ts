@@ -48,7 +48,7 @@ export async function sendPushNotification({
             title,
             message: body,
             data: data || {},
-            channel: 'PUSH',
+            channels: ['PUSH'],
         },
     });
 }

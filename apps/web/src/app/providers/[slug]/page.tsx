@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         openGraph: {
             title: provider.businessName,
             description: provider.shortBio || provider.description?.slice(0, 160),
-            images: provider.coverImageUrl ? [provider.coverImageUrl] : [],
+            images: provider.bannerUrl ? [provider.bannerUrl] : [],
             type: 'profile',
         },
         alternates: {
@@ -55,15 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
-export async function generateStaticParams() {
-    const providers = await prisma.providerProfile.findMany({
-        where: { status: 'ACTIVE' },
-        select: { slug: true },
-        take: 100,
-    });
-
-    return providers.map((p) => ({ slug: p.slug }));
-}
+export const dynamic = 'force-dynamic';
 
 export default async function ProviderProfilePage({ params }: Props) {
     const provider = await prisma.providerProfile.findUnique({
@@ -94,7 +86,8 @@ export default async function ProviderProfilePage({ params }: Props) {
                     customer: {
                         include: { user: true },
                     },
-                    media: true,
+                    photos: true,
+                    response: true,
                 },
                 orderBy: { createdAt: 'desc' },
                 take: 10,
@@ -116,7 +109,7 @@ export default async function ProviderProfilePage({ params }: Props) {
         name: provider.businessName,
         description: provider.description,
         url: `${process.env.NEXT_PUBLIC_APP_URL}/providers/${provider.slug}`,
-        image: provider.coverImageUrl || provider.logoUrl,
+        image: provider.bannerUrl || provider.logoUrl,
         address: provider.city
             ? {
                 '@type': 'PostalAddress',
@@ -163,10 +156,10 @@ export default async function ProviderProfilePage({ params }: Props) {
                 '@type': 'Offer',
                 name: service.name,
                 description: service.description,
-                priceSpecification: service.priceType === 'FIXED' && service.priceMin
+                priceSpecification: service.pricingModel === 'FIXED' && (service.fixedPrice || service.priceFrom)
                     ? {
                         '@type': 'PriceSpecification',
-                        price: service.priceMin,
+                        price: service.fixedPrice || service.priceFrom,
                         priceCurrency: 'GBP',
                     }
                     : undefined,
@@ -195,9 +188,9 @@ export default async function ProviderProfilePage({ params }: Props) {
             <div className="min-h-screen bg-slate-50">
                 {/* Hero Section */}
                 <div className="relative h-64 md:h-80 bg-gradient-to-br from-primary/30 to-primary/10">
-                    {provider.coverImageUrl && (
+                    {provider.bannerUrl && (
                         <img
-                            src={provider.coverImageUrl}
+                            src={provider.bannerUrl}
                             alt={`${provider.businessName} cover`}
                             className="absolute inset-0 w-full h-full object-cover"
                         />
@@ -357,11 +350,11 @@ export default async function ProviderProfilePage({ params }: Props) {
                                                 <p className="text-sm text-muted-foreground">
                                                     {service.category.name}
                                                 </p>
-                                                {service.priceMin && (
+                                                {(service.fixedPrice || service.priceFrom) && (
                                                     <p className="text-sm font-medium text-primary mt-2">
-                                                        {service.priceType === 'FIXED'
-                                                            ? `From £${service.priceMin}`
-                                                            : `£${service.priceMin}/hr`}
+                                                        {service.pricingModel === 'FIXED'
+                                                            ? `From £${service.fixedPrice || service.priceFrom}`
+                                                            : `£${service.hourlyRate}/hr`}
                                                     </p>
                                                 )}
                                             </div>
@@ -427,8 +420,8 @@ export default async function ProviderProfilePage({ params }: Props) {
                                                                     <Star
                                                                         key={i}
                                                                         className={`h-4 w-4 ${i < review.overallRating
-                                                                                ? 'text-amber-500 fill-amber-500'
-                                                                                : 'text-slate-200'
+                                                                            ? 'text-amber-500 fill-amber-500'
+                                                                            : 'text-slate-200'
                                                                             }`}
                                                                     />
                                                                 ))}
@@ -453,9 +446,9 @@ export default async function ProviderProfilePage({ params }: Props) {
                                                     </p>
 
                                                     {/* Review photos */}
-                                                    {review.media.length > 0 && (
+                                                    {review.photos.length > 0 && (
                                                         <div className="flex gap-2 mt-3">
-                                                            {review.media.map((media) => (
+                                                            {review.photos.map((media) => (
                                                                 <div
                                                                     key={media.id}
                                                                     className="w-16 h-16 rounded overflow-hidden"
@@ -471,13 +464,13 @@ export default async function ProviderProfilePage({ params }: Props) {
                                                     )}
 
                                                     {/* Provider response */}
-                                                    {review.providerResponse && (
+                                                    {review.response && (
                                                         <div className="mt-4 ml-6 p-4 bg-slate-50 rounded-lg">
                                                             <p className="text-sm font-medium mb-1">
                                                                 Response from {provider.businessName}
                                                             </p>
                                                             <p className="text-sm text-muted-foreground">
-                                                                {review.providerResponse}
+                                                                {review.response.comment}
                                                             </p>
                                                         </div>
                                                     )}

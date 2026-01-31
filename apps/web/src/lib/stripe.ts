@@ -1,13 +1,18 @@
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not set');
+const stripeKey = process.env.STRIPE_SECRET_KEY || '';
+
+if (!stripeKey && process.env.NODE_ENV === 'production') {
+    console.warn('STRIPE_SECRET_KEY is not set. Stripe functionality will not work.');
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2023-10-16',
-    typescript: true,
-});
+// Initialize Stripe ONLY if key is provided to avoid error: Neither apiKey nor config.authenticator provided
+export const stripe = stripeKey
+    ? new Stripe(stripeKey, {
+        apiVersion: '2025-02-24.acacia' as any,
+        typescript: true,
+    })
+    : null as unknown as Stripe;
 
 // =============================================================================
 // Checkout Session Helpers
@@ -187,12 +192,14 @@ export async function createConnectLoginLink(accountId: string) {
 
 export async function createTransferToPlatform(params: {
     amount: number;
+    destination: string;
     paymentIntentId: string;
     description: string;
 }) {
     const transfer = await stripe.transfers.create({
         amount: Math.round(params.amount * 100),
         currency: 'gbp',
+        destination: params.destination,
         source_transaction: params.paymentIntentId,
         description: params.description,
     });

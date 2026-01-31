@@ -96,7 +96,7 @@ export default async function AdminBookingsPage({
                 status: 'COMPLETED',
                 completedAt: { gte: startOfMonth },
             },
-            _sum: { totalAmount: true },
+            _sum: { total: true },
         }),
     ]);
 
@@ -140,7 +140,7 @@ export default async function AdminBookingsPage({
                 <Card>
                     <CardContent className="p-4">
                         <div className="text-2xl font-bold text-emerald-600">
-                            £{((monthlyRevenue._sum.totalAmount || 0) / 100).toLocaleString()}
+                            £{(((monthlyRevenue as any)._sum.total || 0) / 100).toLocaleString()}
                         </div>
                         <p className="text-sm text-muted-foreground">This Month</p>
                     </CardContent>
@@ -227,7 +227,7 @@ export default async function AdminBookingsPage({
                             </tr>
                         </thead>
                         <tbody className="divide-y">
-                            {bookings.map((booking) => (
+                            {bookings.map((booking: any) => (
                                 <tr key={booking.id} className="hover:bg-slate-50">
                                     <td className="px-4 py-4">
                                         <span className="font-mono text-sm">
@@ -266,7 +266,7 @@ export default async function AdminBookingsPage({
                                             : 'TBD'}
                                     </td>
                                     <td className="px-4 py-4 font-medium">
-                                        £{(booking.totalAmount / 100).toFixed(2)}
+                                        £{(booking.total / 100).toFixed(2)}
                                     </td>
                                     <td className="px-4 py-4">
                                         <BookingStatusBadge status={booking.status} />

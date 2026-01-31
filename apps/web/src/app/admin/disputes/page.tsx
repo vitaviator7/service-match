@@ -52,7 +52,6 @@ export default async function AdminDisputesPage({
                         service: true,
                     },
                 },
-                raisedBy: true,
             },
             orderBy: [
                 { priority: 'desc' },
@@ -127,7 +126,7 @@ export default async function AdminDisputesPage({
                 </Card>
             ) : (
                 <div className="space-y-4">
-                    {disputes.map((dispute) => (
+                    {disputes.map((dispute: any) => (
                         <DisputeCard key={dispute.id} dispute={dispute} />
                     ))}
                 </div>
@@ -213,7 +212,7 @@ function DisputeCard({ dispute }: { dispute: any }) {
                             </div>
 
                             <h3 className="font-semibold text-lg mb-1">
-                                {dispute.type.replace(/_/g, ' ')}
+                                {dispute.reason.replace(/_/g, ' ')}
                             </h3>
                             <p className="text-muted-foreground line-clamp-2 mb-3">
                                 {dispute.description}
@@ -260,9 +259,9 @@ function DisputeCard({ dispute }: { dispute: any }) {
                                         ? '1 day ago'
                                         : `${daysSinceCreated} days ago`}
                             </div>
-                            {dispute.requestedAmount && (
+                            {dispute.refundAmount && (
                                 <div className="text-lg font-semibold text-red-600">
-                                    £{dispute.requestedAmount.toFixed(2)}
+                                    £{dispute.refundAmount.toFixed(2)}
                                     <p className="text-xs font-normal text-muted-foreground">
                                         requested refund
                                     </p>

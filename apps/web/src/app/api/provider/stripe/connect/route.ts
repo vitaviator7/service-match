@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
         }
 
         // If already connected and active, return dashboard link
-        if (provider.stripeAccountId && provider.stripeAccountStatus === 'active') { // Note: verify 'active' matches schema
+        if (provider.stripeAccountId && provider.stripeAccountStatus === 'ACTIVE') {
             const url = await createConnectLoginLink(provider.stripeAccountId);
             return NextResponse.json({ url });
         }

@@ -3,6 +3,7 @@ import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
 import { z } from 'zod';
 import { createBookingCheckoutSession } from '@/lib/stripe';
+export const dynamic = 'force-dynamic';
 
 const bookingSchema = z.object({
     quoteId: z.string(),
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        if (new Date(quote.expiresAt) < new Date()) {
+        if (new Date(quote.validUntil) < new Date()) {
             return NextResponse.json({ error: 'Quote has expired' }, { status: 400 });
         }
 
@@ -129,7 +130,7 @@ export async function POST(req: NextRequest) {
             : 0.18;
 
         // Calculate amounts
-        const subtotal = quote.totalAmount.toNumber();
+        const subtotal = quote.amount.toNumber();
         const platformFee = subtotal * platformFeeRate;
         const providerEarnings = subtotal - platformFee;
 
@@ -145,17 +146,18 @@ export async function POST(req: NextRequest) {
                 providerId: quote.providerId,
                 quoteId: quote.id,
                 serviceId: quote.serviceId,
+                title: `${quote.service?.name || 'Service'} Booking`,
                 scheduledDate: bookingDateTime,
-                scheduledTimeStart: scheduledTime,
-                scheduledTimeEnd: calculateEndTime(scheduledTime, quote.estimatedDuration),
+                scheduledTime: scheduledTime,
                 estimatedDuration: quote.estimatedDuration,
                 subtotal,
                 platformFee,
                 platformFeeRate,
                 providerEarnings,
                 total: subtotal,
-                address,
-                postcode: customerProfile.postcode || '',
+                addressLine1: address,
+                city: quote.quoteRequest.city || 'TBD',
+                postcode: quote.quoteRequest.postcode,
                 customerNotes: notes,
                 status: 'PENDING',
                 paymentStatus: 'PENDING',
@@ -188,7 +190,7 @@ export async function POST(req: NextRequest) {
             customerId: customerProfile.id,
             customerEmail: session.user.email!,
             amount: subtotal,
-            serviceName: `${quote.service.name} by ${quote.provider.businessName}`,
+            serviceName: `${quote.service?.name || 'Service'} by ${quote.provider.businessName}`,
             providerConnectAccountId: quote.provider.stripeAccountId,
             platformFeeAmount: platformFee,
             successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/bookings/${booking.id}?success=true`,

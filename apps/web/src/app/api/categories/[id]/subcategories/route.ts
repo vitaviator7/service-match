@@ -6,9 +6,9 @@ export async function GET(
     { params }: { params: { id: string } }
 ) {
     try {
-        const subcategories = await prisma.category.findMany({
+        const subcategories = await prisma.subcategory.findMany({
             where: {
-                parentId: params.id,
+                categoryId: params.id,
                 isActive: true,
             },
             orderBy: { name: 'asc' },

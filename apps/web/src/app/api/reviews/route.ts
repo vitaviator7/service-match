@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
@@ -58,7 +59,7 @@ export async function GET(req: NextRequest) {
                             scheduledDate: true,
                         },
                     },
-                    media: true,
+                    photos: true,
                 },
                 orderBy: { createdAt: 'desc' },
                 skip: (page - 1) * limit,
@@ -187,9 +188,9 @@ export async function POST(req: NextRequest) {
         await prisma.notification.create({
             data: {
                 userId: booking.provider.userId,
-                type: 'NEW_REVIEW',
+                type: 'REVIEW_RECEIVED',
                 title: 'New Review',
-                body: `You received a ${data.overallRating}-star review`,
+                message: `You received a ${data.overallRating}-star review`,
                 data: { reviewId: review.id, bookingId: booking.id },
             },
         });

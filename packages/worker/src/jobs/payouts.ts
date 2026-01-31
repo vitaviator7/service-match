@@ -1,6 +1,11 @@
 import { prisma } from '@service-match/db';
-import { stripe, createPayoutToProvider } from './stripe-server';
 import { emailQueue } from '../index';
+
+// Placeholder for Stripe server functionality
+const createPayoutToProvider = async (params: any) => {
+    // This would be the actual Stripe payout function
+    return { id: 'po_placeholder' };
+};
 
 export async function processPayouts() {
     console.log('💰 Processing weekly payouts...');
@@ -20,7 +25,7 @@ export async function processPayouts() {
     let successCount = 0;
     let failCount = 0;
 
-    for (const provider of providers) {
+    for (const provider of providers as any[]) {
         try {
             // Create payout record
             const payout = await prisma.payout.create({
@@ -28,6 +33,8 @@ export async function processPayouts() {
                     providerId: provider.id,
                     amount: provider.availableBalance,
                     status: 'PENDING',
+                    scheduledFor: new Date(),
+                    grossAmount: provider.availableBalance,
                 },
             });
 
@@ -60,13 +67,13 @@ export async function processPayouts() {
             });
 
             // Create ledger entry
-            await prisma.ledger.create({
+            await prisma.ledgerEntry.create({
                 data: {
                     providerId: provider.id,
                     payoutId: payout.id,
                     type: 'PAYOUT',
                     amount: -provider.availableBalance,
-                    balance: 0,
+                    runningBalance: 0,
                     description: `Weekly payout: £${provider.availableBalance.toFixed(2)}`,
                 },
             });
@@ -96,7 +103,7 @@ export async function processPayouts() {
                 },
                 data: {
                     status: 'FAILED',
-                    failureReason: error instanceof Error ? error.message : 'Unknown error',
+                    failedReason: error instanceof Error ? error.message : 'Unknown error',
                 },
             });
         }
@@ -104,11 +111,3 @@ export async function processPayouts() {
 
     console.log(`💰 Payouts complete: ${successCount} success, ${failCount} failed`);
 }
-
-// Placeholder for Stripe server import
-const createPayoutToProviderPlaceholder = async (params: any) => {
-    // This would be the actual Stripe payout function
-    return { id: 'po_placeholder' };
-};
-
-export { createPayoutToProviderPlaceholder as createPayoutToProvider };

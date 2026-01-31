@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
@@ -23,7 +24,7 @@ export async function POST(
 
         await prisma.notification.update({
             where: { id: params.id },
-            data: { isRead: true, readAt: new Date() },
+            data: { readAt: new Date() },
         });
 
         return NextResponse.json({ success: true });

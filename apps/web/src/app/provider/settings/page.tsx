@@ -50,7 +50,7 @@ export default async function ProviderSettingsPage() {
                         </div>
                         <div className="space-y-2">
                             <Label>Phone</Label>
-                            <Input defaultValue={provider.phone || ''} disabled />
+                            <Input defaultValue={provider.businessPhone || ''} disabled />
                         </div>
                     </CardContent>
                 </Card>

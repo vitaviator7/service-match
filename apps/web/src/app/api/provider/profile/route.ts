@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
@@ -180,12 +181,12 @@ export async function PUT(req: NextRequest) {
 
         // Create or update location
         if (data.postcode && latitude && longitude) {
-            const existingLocation = await prisma.serviceLocation.findFirst({
+            const existingLocation = await prisma.providerLocation.findFirst({
                 where: { providerId: provider.id, isDefault: true },
             });
 
             if (existingLocation) {
-                await prisma.serviceLocation.update({
+                await prisma.providerLocation.update({
                     where: { id: existingLocation.id },
                     data: {
                         postcode: data.postcode,
@@ -196,10 +197,9 @@ export async function PUT(req: NextRequest) {
                     },
                 });
             } else {
-                await prisma.serviceLocation.create({
+                await prisma.providerLocation.create({
                     data: {
                         providerId: provider.id,
-                        name: 'Primary Location',
                         postcode: data.postcode,
                         city: data.city || cityFromGeo || '',
                         latitude,

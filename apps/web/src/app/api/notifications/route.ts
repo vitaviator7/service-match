@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
         });
 
         const unreadCount = await prisma.notification.count({
-            where: { userId: session.user.id, isRead: false },
+            where: { userId: session.user.id, readAt: null },
         });
 
         const nextCursor =
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
                 userId,
                 type,
                 title,
-                body: notificationBody,
+                message: notificationBody,
                 data: data || {},
             },
         });

@@ -3,6 +3,7 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { prisma } from '@service-match/db';
 import { verifyStripeWebhook } from '@/lib/stripe';
+export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
     try {
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Log webhook for debugging
-        await prisma.webhookLog.create({
+        await prisma.webhookEvent.create({
             data: {
                 source: 'STRIPE',
                 eventType: event.type,
@@ -126,9 +127,9 @@ export async function POST(req: NextRequest) {
         }
 
         // Update webhook log as processed
-        await prisma.webhookLog.update({
+        await prisma.webhookEvent.update({
             where: { eventId: event.id },
-            data: { processedAt: new Date(), status: 'PROCESSED' },
+            data: { processedAt: new Date(), status: 'COMPLETED' },
         });
 
         return NextResponse.json({ received: true });
@@ -168,11 +169,12 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
                 bookingId,
                 customerId: booking.customerId,
                 providerId: booking.providerId,
+                type: 'BOOKING',
                 amount: booking.total,
                 platformFee: booking.platformFee,
                 providerAmount: booking.providerEarnings,
                 currency: 'GBP',
-                status: 'COMPLETED',
+                status: 'PAID',
                 stripePaymentIntentId: session.payment_intent as string,
                 stripeChargeId: session.payment_intent as string, // Will be updated
             },
@@ -245,8 +247,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
                 customerId,
                 stripeSubscriptionId: subscription.id,
                 stripePriceId: subscription.items.data[0].price.id,
-                planType,
-                status: subscription.status.toUpperCase() as any,
+                stripeCustomerId: subscription.customer as string,
+                type: 'CUSTOMER',
+                tier: 'PLUS',
+                status: (subscription.status === 'canceled' ? 'CANCELLED' : subscription.status.toUpperCase()) as any,
                 currentPeriodStart: new Date(subscription.current_period_start * 1000),
                 currentPeriodEnd: new Date(subscription.current_period_end * 1000),
             },
@@ -263,8 +267,10 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
                 providerId,
                 stripeSubscriptionId: subscription.id,
                 stripePriceId: subscription.items.data[0].price.id,
-                planType,
-                status: subscription.status.toUpperCase() as any,
+                stripeCustomerId: subscription.customer as string,
+                type: 'PROVIDER',
+                tier: (planType?.replace('PROVIDER_', '') || 'STARTER') as string,
+                status: (subscription.status === 'canceled' ? 'CANCELLED' : subscription.status.toUpperCase()) as any,
                 currentPeriodStart: new Date(subscription.current_period_start * 1000),
                 currentPeriodEnd: new Date(subscription.current_period_end * 1000),
             },
@@ -288,7 +294,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
         await prisma.subscription.update({
             where: { id: existingSub.id },
             data: {
-                status: subscription.status.toUpperCase() as any,
+                status: subscription.status === 'canceled' ? 'CANCELLED' : subscription.status.toUpperCase() as any,
                 currentPeriodStart: new Date(subscription.current_period_start * 1000),
                 currentPeriodEnd: new Date(subscription.current_period_end * 1000),
                 cancelAtPeriodEnd: subscription.cancel_at_period_end,
@@ -310,7 +316,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
         await prisma.subscription.update({
             where: { id: existingSub.id },
             data: {
-                status: 'CANCELED',
+                status: 'CANCELLED',
                 endedAt: new Date(),
             },
         });
@@ -405,7 +411,7 @@ async function handlePayoutPaid(payout: Stripe.Payout) {
             where: { id: payoutRecord.id },
             data: {
                 status: 'PAID',
-                paidAt: new Date(),
+                processedAt: new Date(),
             },
         });
     }
@@ -421,7 +427,7 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
             where: { id: payoutRecord.id },
             data: {
                 status: 'FAILED',
-                failureReason: payout.failure_message || 'Unknown error',
+                failedReason: payout.failure_message || 'Unknown error',
             },
         });
     }
@@ -435,11 +441,16 @@ async function handleChargeRefunded(charge: Stripe.Charge) {
 
     if (booking && charge.refunds?.data[0]) {
         const refund = charge.refunds.data[0];
+        const payment = await prisma.payment.findFirst({
+            where: { stripePaymentIntentId: charge.payment_intent as string },
+        });
 
         await prisma.refund.create({
             data: {
                 bookingId: booking.id,
-                paymentId: booking.id, // Simplified - should link to actual payment
+                paymentId: payment?.id || booking.id, // Fallback if payment record not found
+                customerId: booking.customerId,
+                providerId: booking.providerId,
                 amount: refund.amount / 100,
                 reason: (refund.reason as any) || 'REQUESTED_BY_CUSTOMER',
                 status: 'COMPLETED',

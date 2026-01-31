@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
             businessName: provider.businessName,
             shortBio: provider.shortBio,
             avatarUrl: provider.user.avatarUrl || provider.logoUrl,
-            coverImageUrl: provider.coverImageUrl,
+            coverImageUrl: provider.bannerUrl,
             avgRating: provider.avgRating,
             totalReviews: provider.totalReviews,
             responseTime: provider.avgResponseTime,

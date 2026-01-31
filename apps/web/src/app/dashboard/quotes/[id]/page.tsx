@@ -53,7 +53,6 @@ export default async function QuoteRequestPage({
                 },
                 orderBy: { createdAt: 'desc' },
             },
-            media: true,
             booking: true,
         },
     });
@@ -169,23 +168,23 @@ export default async function QuoteRequestPage({
                         </div>
                     )}
 
-                    {quoteRequest.media && quoteRequest.media.length > 0 && (
+                    {quoteRequest.photos && quoteRequest.photos.length > 0 && (
                         <div className="pt-4 border-t">
                             <p className="font-medium mb-2 flex items-center gap-2">
                                 <ImageIcon className="h-4 w-4" />
-                                Attached Photos ({quoteRequest.media.length})
+                                Attached Photos ({quoteRequest.photos.length})
                             </p>
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                {quoteRequest.media.map((media) => (
+                                {quoteRequest.photos.map((url, index) => (
                                     <a
-                                        key={media.id}
-                                        href={media.url}
+                                        key={index}
+                                        href={url}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="aspect-square rounded-lg overflow-hidden hover:opacity-80 transition-opacity"
                                     >
                                         <img
-                                            src={media.url}
+                                            src={url}
                                             alt="Attached photo"
                                             className="w-full h-full object-cover"
                                         />
@@ -206,7 +205,7 @@ export default async function QuoteRequestPage({
                             <div>
                                 <p className="font-semibold text-green-800">Booking Confirmed</p>
                                 <p className="text-sm text-green-700">
-                                    Reference: {quoteRequest.booking.reference}
+                                    Reference: {quoteRequest.booking.id.slice(0, 8).toUpperCase()}
                                 </p>
                             </div>
                         </div>
@@ -234,9 +233,9 @@ export default async function QuoteRequestPage({
                                 identityVerified: q.provider.identityVerified,
                                 insuranceVerified: q.provider.insuranceVerified,
                             },
-                            quoteAmount: q.amount,
-                            description: q.description || '',
-                            estimatedDuration: q.estimatedDuration || undefined,
+                            quoteAmount: Number(q.amount) * 100, // in pence
+                            description: q.message || '',
+                            estimatedDuration: q.estimatedDuration?.toString() || undefined,
                             validUntil: q.validUntil?.toISOString() || '',
                             createdAt: q.createdAt.toISOString(),
                             status: q.status,

@@ -3,6 +3,7 @@ import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
 import { z } from 'zod';
 import { triggerNewMessage } from '@/lib/pusher';
+export const dynamic = 'force-dynamic';
 
 const messageSchema = z.object({
     threadId: z.string(),
@@ -152,6 +153,7 @@ export async function POST(req: NextRequest) {
         const message = await prisma.message.create({
             data: {
                 threadId,
+                senderId,
                 senderType,
                 content,
             },

@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@service-match/db';
 import { getSession } from '@/lib/auth';
@@ -116,15 +117,14 @@ export async function POST(req: NextRequest) {
         await prisma.notification.create({
             data: {
                 userId: await getUserIdByCustomerId(request.customerId),
-                type: 'NEW_QUOTE',
+                type: 'QUOTE_RECEIVED',
                 title: 'New Quote Received',
-                body: `${provider.businessName} has sent you a quote for your request.`,
+                message: `${provider.businessName} has sent you a quote for your request.`,
                 data: {
                     quoteId: quote.id,
                     quoteRequestId: request.id,
                     providerId: provider.id
                 },
-                isRead: false,
             },
         });
 

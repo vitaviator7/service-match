@@ -15,9 +15,7 @@ export async function sendReviewReminders() {
                 gte: cutoffStart,
                 lt: cutoffEnd,
             },
-            reviews: {
-                none: {},
-            },
+            review: null,
         },
         include: {
             customer: {
@@ -32,12 +30,12 @@ export async function sendReviewReminders() {
 
     let sentCount = 0;
 
-    for (const booking of bookings) {
+    for (const booking of bookings as any[]) {
         // Check if we already sent a reminder
         const existingReminder = await prisma.notification.findFirst({
             where: {
                 userId: booking.customer.userId,
-                type: 'REVIEW_REMINDER',
+                type: 'REVIEW_REQUESTED',
                 data: {
                     path: ['bookingId'],
                     equals: booking.id,
@@ -63,11 +61,11 @@ export async function sendReviewReminders() {
         await prisma.notification.create({
             data: {
                 userId: booking.customer.userId,
-                type: 'REVIEW_REMINDER',
+                type: 'REVIEW_REQUESTED',
                 title: 'How was your experience?',
                 message: `Please take a moment to review ${booking.provider.businessName}`,
                 data: { bookingId: booking.id },
-                channel: 'EMAIL',
+                channels: ['EMAIL'],
             },
         });
 
