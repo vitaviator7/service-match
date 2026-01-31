@@ -28,6 +28,29 @@ export async function GET(req: NextRequest) {
 
         const where: any = { status: 'PUBLISHED' };
 
+        const mine = searchParams.get('mine'); // 'customer' | 'provider'
+
+        if (mine) {
+            const session = await getSession();
+            if (!session?.user) {
+                return new NextResponse('Unauthorized', { status: 401 });
+            }
+
+            if (mine === 'customer') {
+                const profile = await prisma.customerProfile.findUnique({
+                    where: { userId: session.user.id }
+                });
+                if (profile) where.customerId = profile.id;
+                else return new NextResponse('Profile not found', { status: 404 });
+            } else if (mine === 'provider') {
+                const profile = await prisma.providerProfile.findUnique({
+                    where: { userId: session.user.id }
+                });
+                if (profile) where.providerId = profile.id;
+                else return new NextResponse('Profile not found', { status: 404 });
+            }
+        }
+
         if (providerId) {
             where.providerId = providerId;
         }
@@ -52,6 +75,14 @@ export async function GET(req: NextRequest) {
                                 },
                             },
                         },
+                    },
+                    provider: {
+                        select: {
+                            id: true,
+                            businessName: true,
+                            logoUrl: true,
+                            slug: true,
+                        }
                     },
                     booking: {
                         select: {

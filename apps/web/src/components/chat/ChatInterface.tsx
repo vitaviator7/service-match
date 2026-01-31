@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Send, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -25,7 +25,7 @@ export function ChatInterface({ threadId, currentUserType, recipientName }: Chat
     const [sending, setSending] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async () => {
         try {
             const res = await fetch(`/api/messages?threadId=${threadId}&limit=50`);
             if (res.ok) {
@@ -37,13 +37,13 @@ export function ChatInterface({ threadId, currentUserType, recipientName }: Chat
         } finally {
             setLoading(false);
         }
-    };
+    }, [threadId]);
 
     useEffect(() => {
         fetchMessages();
         const interval = setInterval(fetchMessages, 10000); // 10s polling
         return () => clearInterval(interval);
-    }, [threadId]);
+    }, [fetchMessages]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -103,8 +103,8 @@ export function ChatInterface({ threadId, currentUserType, recipientName }: Chat
                             >
                                 <div
                                     className={`max-w-[75%] rounded-lg px-4 py-2 ${isMe
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'bg-slate-100 text-slate-900'
+                                        ? 'bg-primary text-primary-foreground'
+                                        : 'bg-slate-100 text-slate-900'
                                         }`}
                                 >
                                     <p className="whitespace-pre-wrap">{message.content}</p>

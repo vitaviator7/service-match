@@ -3,6 +3,10 @@ import { Search, Shield, Star, Clock, CheckCircle, ArrowRight, ShieldCheck } fro
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import SnapFix from '@/components/home/SnapFix';
+import RouteMatch from '@/components/home/RouteMatch';
+import FairPrice from '@/components/home/FairPrice';
 
 // Sample categories for homepage (would come from database in production)
 const popularCategories = [
@@ -43,32 +47,60 @@ export default function HomePage() {
                         </p>
 
                         {/* Search Box */}
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-4 md:p-6 max-w-2xl mx-auto">
-                            <form className="flex flex-col md:flex-row gap-3">
-                                <div className="flex-1">
-                                    <label htmlFor="service" className="sr-only">What do you need?</label>
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                                        <Input
-                                            id="service"
-                                            placeholder="What do you need? e.g. plumber, cleaner..."
-                                            className="pl-10 h-12 text-base"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="md:w-48">
-                                    <label htmlFor="postcode" className="sr-only">Postcode</label>
-                                    <Input
-                                        id="postcode"
-                                        placeholder="Your postcode"
-                                        className="h-12 text-base"
-                                    />
-                                </div>
-                                <Button type="submit" size="xl" className="md:w-auto">
-                                    Find Pros
-                                    <ArrowRight className="ml-2 h-5 w-5" />
-                                </Button>
-                            </form>
+                        {/* Search Box */}
+                        <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-2xl shadow-2xl p-4 md:p-6 max-w-2xl mx-auto border border-slate-200 dark:border-slate-700">
+                            <Tabs defaultValue="visual" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2 mb-6 h-12 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                                    <TabsTrigger
+                                        value="text"
+                                        className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary text-base"
+                                    >
+                                        Standard Search
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="visual"
+                                        className="relative rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-blue-600 text-base font-medium"
+                                    >
+                                        SnapFix AI™
+                                        <span className="absolute -top-2 -right-2 flex h-4 w-4">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-4 w-4 bg-blue-500 text-[9px] text-white items-center justify-center font-bold">New</span>
+                                        </span>
+                                    </TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="text" className="mt-0 focus-visible:outline-none data-[state=inactive]:hidden">
+                                    <form className="flex flex-col md:flex-row gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                        <div className="flex-1">
+                                            <label htmlFor="service" className="sr-only">What do you need?</label>
+                                            <div className="relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                                <Input
+                                                    id="service"
+                                                    placeholder="What do you need? e.g. plumber..."
+                                                    className="pl-10 h-12 text-base bg-white dark:bg-slate-900 border-slate-200"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="md:w-48">
+                                            <label htmlFor="postcode" className="sr-only">Postcode</label>
+                                            <Input
+                                                id="postcode"
+                                                placeholder="Postcode"
+                                                className="h-12 text-base bg-white dark:bg-slate-900 border-slate-200"
+                                            />
+                                        </div>
+                                        <Button type="submit" size="xl" className="md:w-auto h-12 px-8">
+                                            Find
+                                            <ArrowRight className="ml-2 h-5 w-5" />
+                                        </Button>
+                                    </form>
+                                </TabsContent>
+
+                                <TabsContent value="visual" className="mt-0 focus-visible:outline-none data-[state=inactive]:hidden">
+                                    <SnapFix />
+                                </TabsContent>
+                            </Tabs>
                         </div>
 
                         {/* Trust Indicators */}
@@ -84,6 +116,12 @@ export default function HomePage() {
                     </div>
                 </div>
             </section>
+
+            {/* RouteMatch Section */}
+            <RouteMatch />
+
+            {/* FairPrice Section */}
+            <FairPrice />
 
             {/* Popular Categories */}
             <section className="py-16 md:py-24">

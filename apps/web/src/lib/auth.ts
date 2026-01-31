@@ -56,8 +56,7 @@ export const authOptions: NextAuthOptions = {
         signIn: '/auth/signin',
         signOut: '/auth/signout',
         error: '/auth/error',
-        verifyRequest: '/auth/verify-request',
-        newUser: '/onboarding',
+        verifyRequest: '/auth/verify',
     },
     providers: [
         // Email/Password credentials

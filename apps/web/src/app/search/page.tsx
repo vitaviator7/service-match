@@ -129,12 +129,12 @@ export default function SearchPage() {
     // Initial search
     useEffect(() => {
         searchProviders();
-    }, [currentPage, sortBy, category, minRating, verifiedOnly]);
+    }, [searchProviders]);
 
     // Search on query/postcode change (debounced)
     useEffect(() => {
         debouncedSearch();
-    }, [query, postcode]);
+    }, [debouncedSearch, query, postcode]);
 
     return (
         <div className="min-h-screen bg-slate-50">
