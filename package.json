@@ -18,7 +18,8 @@
         "db:seed": "turbo run db:seed --filter=@service-match/db",
         "db:studio": "turbo run db:studio --filter=@service-match/db",
         "worker:dev": "turbo run dev --filter=@service-match/worker",
-        "worker:start": "turbo run start --filter=@service-match/worker"
+        "worker:start": "turbo run start --filter=@service-match/worker",
+        "postinstall": "cd packages/db && npx prisma generate"
     },
     "devDependencies": {
         "turbo": "^2.1.2",
