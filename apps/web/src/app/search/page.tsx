@@ -71,9 +71,9 @@ function SearchContent() {
     // Filters
     const [query, setQuery] = useState(searchParams.get('q') || '');
     const [postcode, setPostcode] = useState(searchParams.get('postcode') || '');
-    const [category, setCategory] = useState(searchParams.get('category') || '');
+    const [category, setCategory] = useState(searchParams.get('category') || 'all');
     const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'rating');
-    const [minRating, setMinRating] = useState(searchParams.get('minRating') || '');
+    const [minRating, setMinRating] = useState(searchParams.get('minRating') || 'all');
     const [verifiedOnly, setVerifiedOnly] = useState(
         searchParams.get('verified') === 'true'
     );
@@ -93,9 +93,9 @@ function SearchContent() {
         const params = new URLSearchParams();
         if (query) params.set('q', query);
         if (postcode) params.set('postcode', postcode);
-        if (category) params.set('category', category);
+        if (category && category !== 'all') params.set('category', category);
         if (sortBy) params.set('sort', sortBy);
-        if (minRating) params.set('minRating', minRating);
+        if (minRating && minRating !== 'all') params.set('minRating', minRating);
         if (verifiedOnly) params.set('verified', 'true');
         params.set('page', currentPage.toString());
         return `/api/providers?${params.toString()}`;
@@ -169,7 +169,7 @@ function SearchContent() {
                                 <SelectValue placeholder="All Categories" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All Categories</SelectItem>
+                                <SelectItem value="all">All Categories</SelectItem>
                                 {categories.map((cat) => (
                                     <SelectItem key={cat.id} value={cat.slug}>
                                         {cat.icon} {cat.name}
@@ -195,7 +195,7 @@ function SearchContent() {
                                 <SelectValue placeholder="Any Rating" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">Any Rating</SelectItem>
+                                <SelectItem value="all">Any Rating</SelectItem>
                                 <SelectItem value="4">4+ Stars</SelectItem>
                                 <SelectItem value="4.5">4.5+ Stars</SelectItem>
                             </SelectContent>
