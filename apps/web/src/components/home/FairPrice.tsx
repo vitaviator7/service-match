@@ -10,24 +10,55 @@ import Link from 'next/link';
 export default function FairPrice() {
     const [query, setQuery] = useState('');
     const [analyzing, setAnalyzing] = useState(false);
-    const [result, setResult] = useState<null | { low: number; avg: number; high: number }>(null);
+    const [error, setError] = useState<string | null>(null);
+    const [result, setResult] = useState<null | {
+        low: number;
+        avg: number;
+        high: number;
+        confidence: number;
+        reasoning: string;
+        dataPoints: number;
+    }>(null);
 
-    const handleAnalyze = (e: React.FormEvent) => {
+    const handleAnalyze = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!query) return;
 
         setAnalyzing(true);
-        // Simulate API call
-        setTimeout(() => {
-            // Mock data generation based on random seed
-            const basePrice = Math.floor(Math.random() * 200) + 100;
-            setResult({
-                low: basePrice - 40,
-                avg: basePrice,
-                high: basePrice + 80
+        setError(null);
+
+        try {
+            const response = await fetch('/api/fairprice/estimate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jobTitle: query,
+                    jobDescription: '',
+                }),
             });
+
+            const data = await response.json();
+
+            if (data.success && data.estimate) {
+                setResult({
+                    low: data.estimate.low,
+                    avg: data.estimate.avg,
+                    high: data.estimate.high,
+                    confidence: data.estimate.confidence,
+                    reasoning: data.estimate.reasoning,
+                    dataPoints: data.estimate.dataPoints,
+                });
+            } else {
+                throw new Error(data.error || 'Failed to get estimate');
+            }
+        } catch (err) {
+            console.error('FairPrice error:', err);
+            setError('Unable to generate estimate. Please try again.');
+        } finally {
             setAnalyzing(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -91,6 +122,12 @@ export default function FairPrice() {
                                 </div>
                             </form>
 
+                            {error && (
+                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 text-red-800 dark:text-red-200 text-sm">
+                                    {error}
+                                </div>
+                            )}
+
                             {result ? (
                                 <div className="space-y-6 animate-in slide-in-from-bottom-4 fade-in duration-500">
                                     <div className="flex justify-between items-end mb-2">
@@ -121,9 +158,27 @@ export default function FairPrice() {
                                         <div style={{ width: '25%' }} className="h-full bg-slate-200/50"></div>
                                     </div>
 
-                                    <p className="text-xs text-center text-slate-400 mt-2">
-                                        Based on 1,240 recent jobs in your area.
-                                    </p>
+                                    {/* AI Reasoning */}
+                                    {result.reasoning && (
+                                        <div className="bg-slate-50 dark:bg-slate-900/50 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
+                                            <div className="flex items-start gap-2">
+                                                <Info className="w-4 h-4 text-indigo-500 mt-0.5 flex-shrink-0" />
+                                                <div className="text-sm text-slate-700 dark:text-slate-300">
+                                                    {result.reasoning}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Confidence & Data Points */}
+                                    <div className="flex items-center justify-between text-xs text-slate-400">
+                                        <span>
+                                            Confidence: {result.confidence}%
+                                        </span>
+                                        <span>
+                                            Based on {result.dataPoints > 0 ? `${result.dataPoints} recent jobs` : 'market analysis'}
+                                        </span>
+                                    </div>
 
                                     <Link href={`/request?title=${encodeURIComponent(query)}&budgetMax=${result.avg}`} className="block mt-4">
                                         <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 h-12" size="lg">

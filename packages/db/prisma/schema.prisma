@@ -2098,3 +2098,174 @@ model ProviderFavorite {
   @@unique([customerId, providerId])
   @@map("provider_favorites")
 }
+
+// =============================================================================
+// FAIRPRICE™ AI ESTIMATOR
+// =============================================================================
+
+model PriceEstimate {
+  id              String   @id @default(cuid())
+  userId          String?
+  
+  // Job Details
+  categoryId      String?
+  category        String   // Friendly category name
+  subcategory     String?
+  jobTitle        String
+  jobDescription  String   @db.Text
+  postcode        String?
+  
+  // AI-Generated Estimates
+  estimatedLow    Decimal  @db.Decimal(10, 2)
+  estimatedAvg    Decimal  @db.Decimal(10, 2)
+  estimatedHigh   Decimal  @db.Decimal(10, 2)
+  confidence      Float    // 0-100 confidence score
+  
+  // Breakdown
+  breakdown       Json?    // { labor: 100, materials: 50, complexity: 1.2 }
+  
+  // Data Sources
+  similarJobsCount Int     @default(0)
+  regionalFactor   Decimal @default(1.0) @db.Decimal(5, 2)
+  seasonalFactor   Decimal @default(1.0) @db.Decimal(5, 2)
+  
+  // AI Response
+  aiModel         String   // "gpt-4", "claude-3", etc.
+  aiResponse      Json?    // Full AI response for debugging
+  reasoning       String?  @db.Text // AI explanation
+  
+  // State
+  status          PriceEstimateStatus @default(COMPLETED)
+  expiresAt       DateTime @default(dbgenerated("NOW() + INTERVAL '30 days'"))
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Relations
+  quoteAudits     QuoteAudit[]
+  
+  @@index([categoryId])
+  @@index([postcode])
+  @@index([createdAt])
+  @@map("price_estimates")
+}
+
+model QuoteAudit {
+  id              String   @id @default(cuid())
+  userId          String?
+  estimateId      String?
+  estimate        PriceEstimate? @relation(fields: [estimateId], references: [id])
+  
+  // Uploaded Quote Details
+  providerName    String?
+  quotedAmount    Decimal  @db.Decimal(10, 2)
+  quoteDescription String? @db.Text
+  quoteFileUrl    String?  // Uploaded PDF/image
+  
+  // Analysis
+  marketAverage   Decimal  @db.Decimal(10, 2)
+  variance        Decimal  @db.Decimal(10, 2) // Difference from market rate
+  variancePercent Float    // Percentage difference
+  verdict         QuoteVerdict
+  
+  // AI Analysis
+  analysis        String   @db.Text
+  redFlags        String[] @default([])
+  recommendations String[] @default([])
+  
+  createdAt       DateTime @default(now())
+  
+  @@index([userId])
+  @@map("quote_audits")
+}
+
+model HistoricalPricing {
+  id              String   @id @default(cuid())
+  
+  // Job Details (anonymized)
+  categorySlug    String
+  subcategorySlug String?
+  jobType         String   // e.g., "boiler-service", "bathroom-fitting"
+  
+  // Location
+  postcode        String
+  city            String
+  region          String   // e.g., "London", "North West"
+  
+  // Pricing Data
+  finalAmount     Decimal  @db.Decimal(10, 2)
+  laborCost       Decimal? @db.Decimal(10, 2)
+  materialsCost   Decimal? @db.Decimal(10, 2)
+  
+  // Job Characteristics
+  duration        Int?     // minutes
+  complexity      String?  // "simple", "medium", "complex"
+  urgency         String?  // "standard", "urgent", "emergency"
+  
+  // Source
+  sourceType      PricingDataSource @default(COMPLETED_BOOKING)
+  bookingId       String?  // Reference to actual booking
+  providerId      String?
+  
+  // Metadata
+  completedAt     DateTime
+  createdAt       DateTime @default(now())
+  
+  @@index([categorySlug, postcode])
+  @@index([city])
+  @@index([completedAt])
+  @@map("historical_pricing")
+}
+
+model MaterialPrice {
+  id              String   @id @default(cuid())
+  
+  // Material Details
+  name            String
+  category        String   // "plumbing", "electrical", "building"
+  sku             String?
+  supplier        String?
+  
+  // Pricing
+  price           Decimal  @db.Decimal(10, 2)
+  unit            String   // "each", "meter", "litre", etc.
+  currency        String   @default("GBP")
+  
+  // Market Data
+  source          String   // "scryfallHardware", "wickes", "manual"
+  sourceUrl       String?
+  lastScrapedAt   DateTime?
+  
+  // Validity
+  isActive        Boolean  @default(true)
+  validFrom       DateTime @default(now())
+  validUntil      DateTime?
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([category, name])
+  @@index([isActive])
+  @@map("material_prices")
+}
+
+enum PriceEstimateStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum QuoteVerdict {
+  FAIR
+  SLIGHTLY_HIGH
+  OVERPRICED
+  BARGAIN
+  UNUSUALLY_LOW
+}
+
+enum PricingDataSource {
+  COMPLETED_BOOKING
+  PROVIDER_QUOTE
+  MANUAL_ENTRY
+  INDUSTRY_SURVEY
+}
