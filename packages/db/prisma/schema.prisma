@@ -2269,3 +2269,67 @@ enum PricingDataSource {
   MANUAL_ENTRY
   INDUSTRY_SURVEY
 }
+
+// =============================================================================
+// SNAPFIX™ AI VISUAL DIAGNOSIS
+// =============================================================================
+
+model SnapFixDiagnosis {
+  id              String   @id @default(cuid())
+  userId          String?
+  
+  // Media Upload
+  mediaUrl        String   // URL to uploaded image/video
+  mediaType       MediaType
+  thumbnailUrl    String?
+  
+  // AI Analysis Results
+  identifiedIssue String   // e.g., "Leaking pipe", "Broken boiler"
+  confidence      Float    // 0-100 confidence score
+  suggestedCategory String // e.g., "plumbing", "heating-boilers"
+  urgency         UrgencyLevel @default(STANDARD)
+  
+  // Detailed Analysis
+  aiModel         String   // "gpt-4-vision", "claude-3-opus", etc.
+  aiResponse      Json?    // Full AI response for debugging
+  diagnosis       String   @db.Text // Detailed explanation
+  recommendations String[] @default([])
+  
+  // Cost estimate (from FairPrice integration)
+  estimatedCost   Json?    // { low: 100, avg: 150, high: 200 }
+  
+  // Detected Items
+  detectedBrand   String?  // e.g., "Potterton", "Worcester Bosch"
+  detectedModel   String?  // e.g., "Gold 28", "Greenstar 40CDi"
+  detectedAge     String?  // e.g., "5-10 years old"
+  
+  // Location & Context
+  location        String?  // e.g., "kitchen", "bathroom", "bedroom"
+  additionalNotes String?  @db.Text
+  
+  // Status
+  status          DiagnosisStatus @default(COMPLETED)
+  
+  // Metadata
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([createdAt])
+  @@index([suggestedCategory])
+  @@map("snapfix_diagnoses")
+}
+
+enum UrgencyLevel {
+  LOW
+  STANDARD
+  URGENT
+  EMERGENCY
+}
+
+enum DiagnosisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
